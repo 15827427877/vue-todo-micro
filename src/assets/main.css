@@ -1,0 +1,73 @@
+/* Global styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #f5f7fa;
+  min-height: 100%;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.el-header,
+.el-aside,
+.el-main {
+  background: #ffffff;
+}
+
+body {
+  color: #303133;
+}
+
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
+}
+
+.login-card {
+  width: 380px;
+}
+
+.layout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.layout-aside {
+  background: #001529;
+  color: #fff;
+}
+
+.layout-aside .el-menu {
+  border-right: 0;
+}
+
+.layout-aside .el-menu-item,
+.layout-aside .el-sub-menu__title {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.layout-main {
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+  background: #f0f2f5;
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.base-card {
+  min-height: 180px;
+}
