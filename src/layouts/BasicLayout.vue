@@ -12,7 +12,7 @@
         <div class="header-title">待办系统后台</div>
         <div class="header-actions">
           <span>欢迎，{{ user.name }}</span>
-          <el-button size="small" type="text" @click="logout">退出</el-button>
+          <el-button size="small" link @click="logout">退出</el-button>
         </div>
       </el-header>
 

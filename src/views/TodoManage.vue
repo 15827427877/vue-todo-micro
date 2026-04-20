@@ -29,9 +29,9 @@
       <el-table-column prop="deadline" label="截止日期" width="160" sortable />
       <el-table-column label="操作" width="320">
         <template #default="{ row }">
-          <el-button type="text" size="small" @click="viewDetail(row.id)">详情</el-button>
-          <el-button type="text" size="small" @click="openDialog('edit', row)">编辑</el-button>
-          <el-button type="text" size="small" @click="deleteTask(row)" style="color: #f56c6c">删除</el-button>
+          <el-button link size="small" @click="viewDetail(row.id)">详情</el-button>
+          <el-button link size="small" @click="openDialog('edit', row)">编辑</el-button>
+          <el-button link size="small" @click="deleteTask(row)" style="color: #f56c6c">删除</el-button>
           <el-dropdown trigger="click">
             <span class="el-dropdown-link">更多操作<i class="el-icon-arrow-down el-icon--right"></i></span>
             <template #dropdown>

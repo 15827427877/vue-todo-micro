@@ -9,8 +9,8 @@
       <el-table-column prop="leader" label="负责人" />
       <el-table-column label="操作" width="180">
         <template #default="{ row }">
-          <el-button type="text" size="small" @click="openDialog('edit', row)">编辑</el-button>
-          <el-button type="text" size="small" @click="removeDepartment(row.id)">删除</el-button>
+          <el-button link size="small" @click="openDialog('edit', row)">编辑</el-button>
+          <el-button link size="small" @click="removeDepartment(row.id)">删除</el-button>
         </template>
       </el-table-column>
     </base-table>

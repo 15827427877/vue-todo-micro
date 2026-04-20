@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { loginRequest } from '@/api'
+import { loginRequest, getUserInfo } from '@/api'
 
 export interface UserState {
   token: string
@@ -16,7 +16,7 @@ export const useUserStore = defineStore('user', {
     roles: JSON.parse(localStorage.getItem('roles') || '[]')
   }),
   actions: {
-    setToken(token: string, name: string, userId: string = '', roles: string[] = []) {
+    setToken(token: string, name: string = '', userId: string = '', roles: string[] = []) {
       this.token = token
       this.name = name
       this.userId = userId
@@ -39,20 +39,47 @@ export const useUserStore = defineStore('user', {
     async login(username: string, password: string) {
       try {
         const response = await loginRequest({ username, password })
-        const token = response.token || ''
-        const name = response.name || username
-        const userId = response.userId || ''
-        const roles = response.roles || []
+        
+        // 后端返回格式可能是：
+        // { token: "...", name: "...", userId: "...", roles: [...] }
+        // 或者 { data: { token: "...", name: "...", ... } }
+        let token = ''
+        let name = username
+        let userId = ''
+        let roles: string[] = []
+        
+        if (typeof response === 'string') {
+          // 如果直接返回token
+          token = response
+        } else if (response && typeof response === 'object') {
+          token = response.token || response.accessToken || ''
+          name = response.name || response.username || username
+          userId = response.userId || response.id || ''
+          roles = response.roles || response.authorities || []
+        }
+        
         if (!token) {
           throw new Error('登录响应中缺少 token')
         }
+        
         this.setToken(token, name, userId, roles)
         return true
       } catch (error) {
         console.error('登录失败:', error)
-        // 开发环境下使用模拟token
-        this.setToken('demo-token', username, '1', ['admin'])
-        return true
+        throw error
+      }
+    },
+    async fetchUserInfo() {
+      try {
+        const response = await getUserInfo()
+        if (response) {
+          this.name = response.name || response.username || this.name
+          this.userId = response.userId || response.id || this.userId
+          this.roles = response.roles || response.authorities || this.roles
+          this.setToken(this.token, this.name, this.userId, this.roles)
+        }
+      } catch (error) {
+        console.error('获取用户信息失败:', error)
       }
     }
   }
