@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -36,14 +37,37 @@ const logout = () => {
 }
 
 const user = userStore
-const menuItems = [
-  { path: '/', label: '首页' },
-  { path: '/todo', label: '待办列表' },
-  { path: '/statistics', label: '查询统计' },
-  { path: '/user', label: '用户管理' },
-  { path: '/role', label: '角色管理' },
-  { path: '/department', label: '部门管理' }
-]
+
+// 根据用户角色生成菜单
+const menuItems = computed(() => {
+  const baseItems = [
+    { path: '/', label: '首页' },
+    { path: '/todo', label: '待办列表' },
+    { path: '/statistics', label: '查询统计' }
+  ]
+  
+  // 所有登录用户都能看到的管理菜单
+  const manageItems = [
+    { path: '/user', label: '用户管理' },
+    { path: '/role', label: '角色管理' }
+  ]
+  
+  // 只有管理员能看到的菜单
+  const adminItems = [
+    { path: '/permission', label: '权限管理' }
+  ]
+  
+  // 所有登录用户都能看到的部门管理
+  const departmentItem = [
+    { path: '/department', label: '部门管理' }
+  ]
+  
+  // 检查用户是否为管理员
+  const isAdmin = user.roles && user.roles.includes('admin')
+  
+  // 组合菜单
+  return [...baseItems, ...manageItems, ...(isAdmin ? adminItems : []), ...departmentItem]
+})
 </script>
 
 <style scoped>

@@ -6,6 +6,7 @@ import Home from '@/views/Home.vue'
 import UserManage from '@/views/UserManage.vue'
 import RoleManage from '@/views/RoleManage.vue'
 import DepartmentManage from '@/views/DepartmentManage.vue'
+import PermissionManage from '@/views/PermissionManage.vue'
 import TodoManage from '@/views/TodoManage.vue'
 import TodoDetail from '@/views/TodoDetail.vue'
 import TodoStatistics from '@/views/TodoStatistics.vue'
@@ -62,6 +63,12 @@ const routes = [
         name: 'DepartmentManage',
         component: DepartmentManage,
         meta: { title: '部门管理', requiresAuth: true }
+      },
+      {
+        path: 'permission',
+        name: 'PermissionManage',
+        component: PermissionManage,
+        meta: { title: '权限管理', requiresAuth: true }
       }
     ]
   }
@@ -75,6 +82,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
   const token = userStore.token
+  const isAdmin = userStore.roles && userStore.roles.includes('admin')
 
   document.title = to.meta.title ? `政务待办系统 - ${to.meta.title}` : '政务待办系统'
 
@@ -87,6 +95,11 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !token) {
     return next({ path: '/login' })
+  }
+
+  // 权限管理页面需要管理员角色
+  if (to.name === 'PermissionManage' && !isAdmin) {
+    return next({ path: '/' })
   }
 
   return next()

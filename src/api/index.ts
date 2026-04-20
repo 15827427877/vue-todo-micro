@@ -87,6 +87,27 @@ export const fetchRoles = () =>
 export const fetchDepartments = () =>
   service.get('/system/departments')
 
+export const fetchPermissions = (params?: Record<string, any>) =>
+  service.get('/system/permissions', { params })
+
+export const createPermission = (payload: Record<string, any>) =>
+  service.post('/system/permissions', payload)
+
+export const updatePermission = (id: number | string, payload: Record<string, any>) =>
+  service.put(`/system/permissions/${id}`, payload)
+
+export const deletePermission = (id: number | string) =>
+  service.delete(`/system/permissions/${id}`)
+
+export const fetchModules = () =>
+  service.get('/system/modules')
+
+export const assignRolePermissions = (roleId: number | string, permissionIds: number[]) =>
+  service.post(`/system/roles/${roleId}/permissions`, { permissionIds })
+
+export const getRolePermissions = (roleId: number | string) =>
+  service.get(`/system/roles/${roleId}/permissions`)
+
 export const fetchTodoStatistics = (params?: Record<string, any>) =>
   service.get('/todos/statistics', { params })
 
