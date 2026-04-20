@@ -1,10 +1,47 @@
+:root {
+  --gov-primary: #165dff;
+  --gov-primary-light: #3e8cff;
+  --gov-primary-dark: #0f3cc9;
+  --gov-sidebar: #0f2d52;
+  --gov-sidebar-light: #1a3a5c;
+  --gov-bg: #f8fafc;
+  --gov-bg-light: #ffffff;
+  --gov-card: #ffffff;
+  --gov-border: #e6ecf3;
+  --gov-border-light: #f1f5f9;
+  --gov-text: #1e293b;
+  --gov-text-light: #64748b;
+  --gov-text-lighter: #94a3b8;
+  --gov-light: #f8fafc;
+  --gov-success: #10b981;
+  --gov-warning: #f59e0b;
+  --gov-danger: #ef4444;
+  --gov-info: #6b7280;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+}
+
 /* Global styles */
 html, body {
   margin: 0;
   padding: 0;
   font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: #f5f7fa;
+  background: var(--gov-bg);
   min-height: 100%;
+  color: var(--gov-text);
 }
 
 #app {
@@ -13,61 +50,488 @@ html, body {
 
 .el-header,
 .el-aside,
-.el-main {
-  background: #ffffff;
+.el-main,
+.el-card,
+.el-dialog {
+  background: var(--gov-card);
+}
+
+/* Global styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--gov-bg);
+  min-height: 100%;
+  color: var(--gov-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--gov-bg) 0%, #f1f5f9 100%);
+}
+
+.el-header,
+.el-aside,
+.el-main,
+.el-card,
+.el-dialog {
+  background: var(--gov-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 body {
-  color: #303133;
+  color: var(--gov-text);
 }
 
+/* 登录页面样式优化 */
 .login-wrapper {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
+  background: linear-gradient(135deg, var(--gov-primary) 0%, var(--gov-primary-light) 50%, #60a5fa 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.08)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
 }
 
 .login-card {
-  width: 380px;
+  width: 420px;
+  border: none;
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-xl);
+  position: relative;
+  z-index: 1;
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gov-primary);
+  text-align: center;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.login-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gov-primary), var(--gov-primary-light));
+  border-radius: var(--radius-full);
 }
 
 .layout-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  background: #fff;
-  border-bottom: 1px solid #ebeef5;
+  align-items: center;
+  height: 64px;
+  padding: 0 32px;
+  background: var(--gov-card);
+  border-bottom: 1px solid var(--gov-border-light);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.layout-header .el-button {
+  border-radius: var(--radius-md);
+  font-weight: 500;
 }
 
 .layout-aside {
-  background: #001529;
+  background: linear-gradient(180deg, var(--gov-sidebar) 0%, var(--gov-sidebar-light) 100%);
   color: #fff;
+  box-shadow: var(--shadow-md);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
 }
 
 .layout-aside .el-menu {
   border-right: 0;
+  background: transparent;
 }
 
 .layout-aside .el-menu-item,
 .layout-aside .el-sub-menu__title {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.88);
+  border-radius: var(--radius-md);
+  margin: 4px 8px;
+  transition: all 0.3s ease;
+}
+
+.layout-aside .el-menu-item:hover,
+.layout-aside .el-sub-menu__title:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 .layout-main {
-  padding: 24px;
+  padding: 32px;
   min-height: calc(100vh - 64px);
-  background: #f0f2f5;
+  background: var(--gov-bg);
+  border-radius: var(--radius-lg) 0 0 0;
 }
 
 .dashboard-grid {
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-bottom: 32px;
 }
 
 .base-card {
-  min-height: 180px;
+  min-height: 200px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--gov-border-light);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.base-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.base-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--gov-primary), var(--gov-primary-light));
+}
+
+.el-table {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gov-border-light);
+}
+
+.el-table th {
+  background: linear-gradient(135deg, var(--gov-light) 0%, #f8fafc 100%);
+  color: var(--gov-text);
+  font-weight: 600;
+  border-bottom: 2px solid var(--gov-border);
+  padding: 16px 12px;
+}
+
+.el-table td {
+  color: var(--gov-text-light);
+  border-bottom: 1px solid var(--gov-border-light);
+  padding: 16px 12px;
+  transition: background-color 0.2s ease;
+}
+
+.el-table tbody tr:hover td {
+  background: var(--gov-light);
+}
+
+.el-pagination {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.el-pagination .el-pager li a {
+  color: var(--gov-text);
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+}
+
+.el-pagination .el-pager li.active a {
+  background: linear-gradient(135deg, var(--gov-primary), var(--gov-primary-light));
+  color: #fff;
+  border-color: var(--gov-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.el-pagination .el-pager li a:hover {
+  color: var(--gov-primary);
+  transform: scale(1.05);
+}
+
+.el-dialog {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.el-dialog__header {
+  background: linear-gradient(135deg, var(--gov-light) 0%, #f1f5f9 100%);
+  border-bottom: 1px solid var(--gov-border-light);
+  padding: 24px 32px;
+  margin: 0;
+}
+
+.el-dialog__body {
+  padding: 32px;
+}
+
+.el-dialog__footer {
+  padding: 16px 32px 24px;
+  border-top: 1px solid var(--gov-border-light);
+  background: var(--gov-light);
+}
+
+.el-tag {
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  padding: 4px 12px;
+}
+
+.el-button {
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, var(--gov-primary), var(--gov-primary-light));
+  border-color: var(--gov-primary);
+  box-shadow: 0 4px 12px rgba(22, 93, 255, 0.3);
+}
+
+.el-button--primary:hover {
+  background: linear-gradient(135deg, var(--gov-primary-dark), var(--gov-primary));
+  box-shadow: 0 6px 16px rgba(22, 93, 255, 0.4);
+}
+
+.el-button--success {
+  background: linear-gradient(135deg, var(--gov-success), #34d399);
+  border-color: var(--gov-success);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.el-button--warning {
+  background: linear-gradient(135deg, var(--gov-warning), #fbbf24);
+  border-color: var(--gov-warning);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.el-button--danger {
+  background: linear-gradient(135deg, var(--gov-danger), #f87171);
+  border-color: var(--gov-danger);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.el-input__inner,
+.el-textarea__inner {
+  border-radius: var(--radius-md);
+  border: 2px solid var(--gov-border);
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.el-input__inner:focus,
+.el-textarea__inner:focus {
+  border-color: var(--gov-primary);
+  box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+}
+
+.el-form-item__label {
+  font-weight: 600;
+  color: var(--gov-text);
+  margin-bottom: 8px;
+}
+
+.el-card {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gov-border-light);
+  transition: all 0.3s ease;
+}
+
+.el-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.el-card__header {
+  background: linear-gradient(135deg, var(--gov-light) 0%, #f8fafc 100%);
+  border-bottom: 1px solid var(--gov-border-light);
+  padding: 20px 24px;
+  margin: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.el-card__body {
+  padding: 24px;
+}
+
+.el-menu-item.is-active {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .layout-aside {
+    width: 200px !important;
+  }
+
+  .layout-header {
+    padding: 0 16px;
+    height: 56px;
+  }
+
+  .layout-main {
+    padding: 16px;
+  }
+
+  .page-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .search-block {
+    width: 100%;
+  }
+
+  .search-block .el-input {
+    width: 100% !important;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination-wrap {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pagination-info {
+    text-align: center;
+    font-size: 12px;
+    color: #606266;
+  }
+
+  .el-dialog {
+    width: 90% !important;
+    margin: 10vh auto;
+  }
+
+  .el-form-item {
+    margin-bottom: 16px;
+  }
+}
+
+/* 高 DPI 显示器适配 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .el-table th,
+  .el-table td {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .el-button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .el-input__inner {
+    font-size: 14px;
+  }
+
+  .el-select-dropdown__item {
+    font-size: 14px;
+  }
+
+  .chart-bar {
+    height: 12px;
+  }
+
+  .pie-color {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* 平板适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .layout-aside {
+    width: 220px !important;
+  }
+
+  .chart-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+}
+
+/* 深色模式支持（可选） */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gov-bg: #1a1a1a;
+    --gov-card: #2a2a2a;
+    --gov-border: #404040;
+    --gov-text: #e0e0e0;
+    --gov-light: #333333;
+  }
+
+  .el-table th {
+    background: var(--gov-card);
+    color: var(--gov-text);
+  }
+
+  .el-table td {
+    color: var(--gov-text);
+  }
+
+  .el-pagination .el-pager li a {
+    color: var(--gov-text);
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .layout-aside,
+  .layout-header,
+  .page-toolbar,
+  .pagination-wrap {
+    display: none !important;
+  }
+
+  .layout-main {
+    padding: 0;
+  }
+
+  .el-card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
 }

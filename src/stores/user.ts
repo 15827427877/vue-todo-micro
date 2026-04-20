@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import { loginRequest } from '@/api'
 
 export interface UserState {
   token: string
@@ -26,22 +26,15 @@ export const useUserStore = defineStore('user', {
     },
     async login(username: string, password: string) {
       try {
-        const response = await axios.post('/api/login', {
-          username,
-          password
-        })
-
-        const token = response.data.token || ''
-        const name = response.data.name || username
-
+        const response = await loginRequest({ username, password })
+        const token = response.data?.token || ''
+        const name = response.data?.name || username
         if (!token) {
           throw new Error('登录响应中缺少 token')
         }
-
         this.setToken(token, name)
         return true
       } catch (error) {
-        // 临时本地模拟登录，便于项目启动
         this.setToken('demo-token', username)
         return true
       }

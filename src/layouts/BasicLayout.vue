@@ -1,12 +1,9 @@
 <template>
   <el-container style="min-height: 100vh">
-    <el-aside width="220px" class="layout-aside">
-      <div class="menu-logo">待办管理</div>
+    <el-aside width="240px" class="layout-aside">
+      <div class="menu-logo">政务待办系统</div>
       <el-menu router class="el-menu-vertical-demo" :default-active="$route.path" background-color="#001529" text-color="#fff" active-text-color="#409eff">
-        <el-menu-item index="/">首页</el-menu-item>
-        <el-menu-item index="/user">用户管理</el-menu-item>
-        <el-menu-item index="/role">角色管理</el-menu-item>
-        <el-menu-item index="/department">部门管理</el-menu-item>
+        <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path">{{ item.label }}</el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -39,6 +36,14 @@ const logout = () => {
 }
 
 const user = userStore
+const menuItems = [
+  { path: '/', label: '首页' },
+  { path: '/todo', label: '待办列表' },
+  { path: '/statistics', label: '查询统计' },
+  { path: '/user', label: '用户管理' },
+  { path: '/role', label: '角色管理' },
+  { path: '/department', label: '部门管理' }
+]
 </script>
 
 <style scoped>

@@ -6,6 +6,9 @@ import Home from '@/views/Home.vue'
 import UserManage from '@/views/UserManage.vue'
 import RoleManage from '@/views/RoleManage.vue'
 import DepartmentManage from '@/views/DepartmentManage.vue'
+import TodoManage from '@/views/TodoManage.vue'
+import TodoDetail from '@/views/TodoDetail.vue'
+import TodoStatistics from '@/views/TodoStatistics.vue'
 
 const routes = [
   {
@@ -22,25 +25,43 @@ const routes = [
         path: '',
         name: 'Home',
         component: Home,
-        meta: { title: '首页' }
+        meta: { title: '首页', requiresAuth: true }
+      },
+      {
+        path: 'todo',
+        name: 'TodoManage',
+        component: TodoManage,
+        meta: { title: '待办列表', requiresAuth: true }
+      },
+      {
+        path: 'todo/:id',
+        name: 'TodoDetail',
+        component: TodoDetail,
+        meta: { title: '待办详情', requiresAuth: true }
+      },
+      {
+        path: 'statistics',
+        name: 'TodoStatistics',
+        component: TodoStatistics,
+        meta: { title: '查询统计', requiresAuth: true }
       },
       {
         path: 'user',
         name: 'UserManage',
         component: UserManage,
-        meta: { title: '用户管理' }
+        meta: { title: '用户管理', requiresAuth: true }
       },
       {
         path: 'role',
         name: 'RoleManage',
         component: RoleManage,
-        meta: { title: '角色管理' }
+        meta: { title: '角色管理', requiresAuth: true }
       },
       {
         path: 'department',
         name: 'DepartmentManage',
         component: DepartmentManage,
-        meta: { title: '部门管理' }
+        meta: { title: '部门管理', requiresAuth: true }
       }
     ]
   }
@@ -53,15 +74,18 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
+  const token = userStore.token
 
-  if (to.path === '/login') {
-    if (userStore.token) {
+  document.title = to.meta.title ? `政务待办系统 - ${to.meta.title}` : '政务待办系统'
+
+  if (to.name === 'Login') {
+    if (token) {
       return next({ path: '/' })
     }
     return next()
   }
 
-  if (!userStore.token) {
+  if (to.meta.requiresAuth && !token) {
     return next({ path: '/login' })
   }
 
