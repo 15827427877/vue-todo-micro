@@ -27,10 +27,11 @@
         </template>
       </el-table-column>
       <el-table-column prop="deadline" label="截止日期" width="160" sortable />
-      <el-table-column label="操作" width="280">
+      <el-table-column label="操作" width="320">
         <template #default="{ row }">
           <el-button type="text" size="small" @click="viewDetail(row.id)">详情</el-button>
           <el-button type="text" size="small" @click="openDialog('edit', row)">编辑</el-button>
+          <el-button type="text" size="small" @click="deleteTask(row)" style="color: #f56c6c">删除</el-button>
           <el-dropdown trigger="click">
             <span class="el-dropdown-link">更多操作<i class="el-icon-arrow-down el-icon--right"></i></span>
             <template #dropdown>
@@ -93,7 +94,7 @@
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { exportCsv, fetchTodos, createTodo, updateTodo, changeTodoStatus, transferTodo } from '@/api'
+import { exportCsv, fetchTodos, createTodo, updateTodo, deleteTodo, changeTodoStatus, transferTodo } from '@/api'
 import BaseTable from '@/components/BaseTable.vue'
 import BaseForm from '@/components/BaseForm.vue'
 
@@ -144,16 +145,6 @@ const parseTodoResponse = (data: any) => {
     return { list: data.list, total: data.total }
   }
 
-  // 处理嵌套数据格式
-  if (data.data) {
-    if (Array.isArray(data.data)) {
-      return { list: data.data, total: data.total ?? data.data.length }
-    }
-    if (data.data.list) {
-      return { list: data.data.list, total: data.data.total ?? data.data.list.length }
-    }
-  }
-
   // 处理数组格式（无分页）
   if (Array.isArray(data)) {
     return { list: data, total: data.length }
@@ -173,7 +164,7 @@ const loadTodos = async () => {
       sortField: sortField.value,
       sortOrder: sortOrder.value
     })
-    const result = parseTodoResponse(response.data)
+    const result = parseTodoResponse(response)
     todos.value = result.list
     total.value = result.total
   } catch (error) {
@@ -223,6 +214,25 @@ const saveTask = () => {
       ElMessage.error('保存待办失败，请稍后重试。')
     }
   })
+}
+
+const deleteTask = async (row: TodoItem) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除待办「${row.title}」吗？`,
+      '删除待办',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    await deleteTodo(row.id)
+    ElMessage.success('待办已删除')
+    loadTodos()
+  } catch (error) {
+    // 取消或异常均忽略
+  }
 }
 
 const changeStatus = async (row: TodoItem, status: string) => {
