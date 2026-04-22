@@ -63,11 +63,25 @@
     <base-modal title="分配权限" :visible="permissionDialogVisible" @update:visible="permissionDialogVisible = $event" width="600px">
       <div class="permission-assignment">
         <h4>{{ currentRole?.roleName }} 的权限分配</h4>
-        <el-checkbox-group v-model="selectedPermissions" @change="handlePermissionChange">
-          <el-checkbox v-for="permission in permissions" :key="permission.id" :label="permission.id">
-            {{ permission.name }} ({{ permission.code }})
-          </el-checkbox>
-        </el-checkbox-group>
+        <el-tree
+          ref="permissionTreeRef"
+          :data="permissions"
+          node-key="id"
+          show-checkbox
+          default-expand-all
+          :default-checked-keys="selectedPermissions"
+          :props="{
+            label: 'name',
+            children: 'children'
+          }"
+        >
+          <template #default="{ node, data }">
+            <span class="permission-node">
+              <span class="permission-name">{{ node.label }}</span>
+              <span class="permission-code">({{ data.code }})</span>
+            </span>
+          </template>
+        </el-tree>
       </div>
       <template #footer>
         <el-button @click="permissionDialogVisible = false">取消</el-button>
@@ -80,7 +94,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { fetchRoles, fetchPermissions, getRolePermissions, assignRolePermissions } from '@/api'
+import { fetchRoles, fetchPermissions, fetchPermissionsTree, getRolePermissions, assignRolePermissions } from '@/api'
 import BaseTable from '@/components/BaseTable.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import BaseForm from '@/components/BaseForm.vue'
@@ -95,9 +109,11 @@ interface RoleItem {
 
 interface PermissionItem {
   id: number
+  parentId: number
   name: string
   code: string
   description: string
+  children?: PermissionItem[]
 }
 
 const userStore = useUserStore()
@@ -163,6 +179,7 @@ const editingId = ref<number | null>(null)
 const roleFormRef = ref()
 const currentRole = ref<RoleItem | null>(null)
 const selectedPermissions = ref<number[]>([])
+const permissionTreeRef = ref()
 
 const formData = reactive<RoleItem>({
   id: 0,
@@ -190,7 +207,7 @@ const loadRoles = async () => {
 
 const loadPermissions = async () => {
   try {
-    const data = await fetchPermissions()
+    const data = await fetchPermissionsTree()
     permissions.value = Array.isArray(data) ? data : []
   } catch (error) {
     console.error('权限数据加载失败:', error)
@@ -244,15 +261,36 @@ const assignPermissions = async (role: RoleItem) => {
   permissionDialogVisible.value = true
 }
 
-const handlePermissionChange = (values: number[]) => {
-  selectedPermissions.value = values
+const handleTreeCheckChange = (data: PermissionItem, checked: boolean, indeterminate: boolean) => {
+  // 这里可以处理单个节点的选择变化
+  // 但实际上我们不需要在这里处理，因为el-tree会自动维护选中状态
+  // 当用户点击保存时，我们会从树中获取所有选中的节点
+}
+
+// 从树形结构中获取所有选中的权限ID
+const getAllCheckedPermissions = (tree: PermissionItem[]): number[] => {
+  const checkedIds: number[] = []
+  
+  const traverse = (node: PermissionItem) => {
+    if (selectedPermissions.value.includes(node.id)) {
+      checkedIds.push(node.id)
+    }
+    if (node.children && node.children.length > 0) {
+      node.children.forEach(child => traverse(child))
+    }
+  }
+  
+  tree.forEach(node => traverse(node))
+  return checkedIds
 }
 
 const savePermissions = async () => {
-  if (currentRole.value) {
+  if (currentRole.value && permissionTreeRef.value) {
     try {
-      await assignRolePermissions(currentRole.value.id, selectedPermissions.value)
-      currentRole.value.permissions = selectedPermissions.value
+      // 使用el-tree的getCheckedKeys方法获取所有选中的节点
+      const checkedPermissions = permissionTreeRef.value.getCheckedKeys()
+      await assignRolePermissions(currentRole.value.id, checkedPermissions)
+      currentRole.value.permissions = checkedPermissions
       ElMessage.success('权限分配成功')
       permissionDialogVisible.value = false
     } catch (error) {

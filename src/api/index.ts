@@ -180,6 +180,9 @@ export const deleteDepartment = (id: number | string) =>
 export const fetchPermissions = (params?: Record<string, any>) =>
   service.get('/api/permissions', { params })
 
+export const fetchPermissionsTree = (params?: Record<string, any>) =>
+  service.get('/api/permissions/tree', { params })
+
 export const createPermission = (payload: Record<string, any>) =>
   service.post('/api/permissions', payload)
 
