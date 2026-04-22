@@ -7,6 +7,8 @@ import './assets/main.css'
 // 引入 Element Plus
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+// 引入中文语言包
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 // 引入所有图标
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
@@ -21,6 +23,8 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 // 挂载插件
 app.use(pinia)
 app.use(router)
-app.use(ElementPlus)
+app.use(ElementPlus, {
+  locale: zhCn
+})
 
 app.mount('#app')

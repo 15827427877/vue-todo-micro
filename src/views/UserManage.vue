@@ -1,20 +1,49 @@
 <template>
   <div>
     <div class="page-toolbar">
+      <el-input
+        v-model="searchKeyword"
+        placeholder="搜索用户名..."
+        style="width: 200px; margin-right: 10px"
+        clearable
+        @input="handleSearch"
+      >
+        <template #prefix>
+          <i class="el-icon-search"></i>
+        </template>
+      </el-input>
       <el-button type="primary" icon="el-icon-plus" @click="openDialog('add')">新增用户</el-button>
     </div>
-    <base-table :data="users">
+    <base-table :data="paginatedUsers" :loading="isLoading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="用户名" />
       <el-table-column prop="role" label="角色" />
       <el-table-column prop="department" label="部门" />
       <el-table-column label="操作" width="220">
         <template #default="{ row }">
-          <el-button link size="small" @click="openDialog('edit', row)">编辑</el-button>
-          <el-button link size="small" @click="removeUser(row.id)">删除</el-button>
+          <div class="action-buttons">
+            <el-button link size="small" class="action-btn-edit" @click="openDialog('edit', row)">编辑</el-button>
+            <el-button link size="small" class="action-btn-delete" @click="removeUser(row.id)">删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </base-table>
+
+    <div class="pagination-wrap">
+      <el-pagination
+        background
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        :page-size="pageSize"
+        :page-sizes="[10, 20, 50]"
+        :current-page="currentPage"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
+      <div class="pagination-info">
+        当前第 {{ currentPage }} 页，共 {{ Math.ceil(total / pageSize) }} 页
+      </div>
+    </div>
 
     <base-modal title="用户信息" :visible="dialogVisible" @update:visible="dialogVisible = $event" width="520px">
       <base-form ref="userFormRef" :model="formData" :rules="rules">
@@ -41,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import BaseTable from '@/components/BaseTable.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import BaseForm from '@/components/BaseForm.vue'
@@ -58,6 +87,43 @@ const users = ref<UserItem[]>([
   { id: 2, name: '李四', role: '普通用户', department: '测试部' },
   { id: 3, name: '王五', role: '审核员', department: '市场部' }
 ])
+
+const searchKeyword = ref('')
+const isLoading = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+const filteredUsers = computed(() => {
+  if (!searchKeyword.value) {
+    return users.value
+  }
+  return users.value.filter(user =>
+    user.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+  )
+})
+
+const paginatedUsers = computed(() => {
+  const filtered = filteredUsers.value
+  total.value = filtered.length
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filtered.slice(start, end)
+})
+
+const handleSearch = () => {
+  currentPage.value = 1
+  // 搜索逻辑由computed属性自动处理
+}
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+}
+
+const handleSizeChange = (size: number) => {
+  pageSize.value = size
+  currentPage.value = 1
+}
 
 const dialogVisible = ref(false)
 const currentMode = ref<'add' | 'edit'>('add')
@@ -119,5 +185,53 @@ const removeUser = (id: number) => {
 
 .page-toolbar {
   margin-bottom: 18px;
+}
+
+/* 确保表格单元格文本颜色为深黑色 */
+:deep(.el-table .cell) {
+  color: #0d0c0c !important;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 操作按钮颜色 */
+.action-btn-edit {
+  color: var(--gov-warning) !important;
+}
+
+.action-btn-edit:hover {
+  color: #fbbf24 !important;
+}
+
+.action-btn-delete {
+  color: var(--gov-danger) !important;
+}
+
+.action-btn-delete:hover {
+  color: #f87171 !important;
+}
+
+.pagination-wrap {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
 }
 </style>

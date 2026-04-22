@@ -29,17 +29,20 @@
       <el-table-column prop="deadline" label="截止日期" width="160" sortable />
       <el-table-column label="操作" width="320">
         <template #default="{ row }">
-          <el-button link size="small" @click="viewDetail(row.id)">详情</el-button>
-          <el-button link size="small" @click="openDialog('edit', row)">编辑</el-button>
-          <el-button link size="small" @click="deleteTask(row)" style="color: #f56c6c">删除</el-button>
-          <el-dropdown trigger="click">
-            <span class="el-dropdown-link">更多操作<i class="el-icon-arrow-down el-icon--right"></i></span>
-            <template #dropdown>
-              <el-dropdown-item @click="changeStatus(row, '处理中')">标记处理中</el-dropdown-item>
-              <el-dropdown-item @click="changeStatus(row, '已完成')">标记完成</el-dropdown-item>
-              <el-dropdown-item @click="transferTask(row)">转交</el-dropdown-item>
-            </template>
-          </el-dropdown>
+          <div class="action-buttons">
+            <el-button link size="small" class="action-btn-view" @click="viewDetail(row.id)">详情</el-button>
+            <el-button link size="small" class="action-btn-edit" @click="openDialog('edit', row)">编辑</el-button>
+            <el-button link size="small" class="action-btn-delete" @click="deleteTask(row)">删除</el-button>
+            <el-dropdown trigger="click" size="small">
+              <el-button link size="small" class="action-btn-more">更多操作 <i class="el-icon-arrow-down el-icon--right"></i></el-button>
+              <template #dropdown>
+                <el-dropdown-item @click="changeStatus(row, '待处理')" :disabled="row.status === '待处理'">标记待处理</el-dropdown-item>
+                <el-dropdown-item @click="changeStatus(row, '处理中')" :disabled="row.status === '处理中'">标记处理中</el-dropdown-item>
+                <el-dropdown-item @click="changeStatus(row, '已完成')" :disabled="row.status === '已完成'">标记完成</el-dropdown-item>
+                <el-dropdown-item divided @click="transferTask(row)">转交</el-dropdown-item>
+              </template>
+            </el-dropdown>
+          </div>
         </template>
       </el-table-column>
     </base-table>
@@ -52,6 +55,11 @@
         :page-size="pageSize"
         :page-sizes="[10, 20, 50]"
         :current-page="currentPage"
+        prev-text="上一页"
+        next-text="下一页"
+        total-text="共"
+        page-size-text="条/页"
+        jumper-text="前往"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
@@ -60,7 +68,7 @@
       </div>
     </div>
 
-    <el-dialog title="待办信息" v-model:visible="formVisible" width="520px">
+    <el-dialog title="待办信息" v-model="formVisible" width="520px">
       <base-form ref="taskFormRef" :model="taskForm" :rules="rules">
         <el-form-item label="标题" prop="title">
           <el-input v-model="taskForm.title" placeholder="请输入待办标题" />
@@ -240,6 +248,8 @@ const changeStatus = async (row: TodoItem, status: string) => {
     await changeTodoStatus(row.id, status)
     row.status = status
     ElMessage.success('状态已更新')
+    // 重新加载待办列表，确保与后端数据一致
+    await loadTodos()
   } catch (error) {
     ElMessage.error('更新状态失败')
   }
@@ -258,6 +268,8 @@ const transferTask = async (row: TodoItem) => {
       await transferTodo(row.id, value)
       row.assignee = value
       ElMessage.success('转交成功')
+      // 重新加载待办列表，确保与后端数据一致
+      await loadTodos()
     }
   } catch (error) {
     // 取消或异常均忽略
@@ -349,7 +361,7 @@ onMounted(() => {
 }
 
 .pagination-wrap {
-  margin-top: 24px;
+  margin-top: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -366,5 +378,58 @@ onMounted(() => {
   font-size: 14px;
   color: #64748b;
   font-weight: 500;
+}
+
+/* 确保表格单元格文本颜色为深黑色 */
+:deep(.el-table .cell) {
+  color: #0d0c0c !important;
+}
+
+/* 确保操作栏按钮颜色与列表数据颜色一致 */
+:deep(.el-table .el-button--text) {
+  color: #0d0c0c !important;
+}
+
+:deep(.el-table .el-button--text:hover) {
+  color: #165dff !important;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 操作按钮颜色 */
+.action-btn-view {
+  color: var(--gov-primary) !important;
+}
+
+.action-btn-view:hover {
+  color: var(--gov-primary-light) !important;
+}
+
+.action-btn-edit {
+  color: var(--gov-warning) !important;
+}
+
+.action-btn-edit:hover {
+  color: #fbbf24 !important;
+}
+
+.action-btn-delete {
+  color: var(--gov-danger) !important;
+}
+
+.action-btn-delete:hover {
+  color: #f87171 !important;
+}
+
+.action-btn-more {
+  color: var(--gov-info) !important;
+}
+
+.action-btn-more:hover {
+  color: var(--gov-primary) !important;
 }
 </style>

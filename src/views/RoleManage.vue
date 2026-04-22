@@ -1,25 +1,54 @@
 <template>
   <div>
     <div class="page-toolbar">
+      <el-input
+        v-model="searchKeyword"
+        placeholder="搜索角色名称..."
+        style="width: 200px; margin-right: 10px"
+        clearable
+        @input="handleSearch"
+      >
+        <template #prefix>
+          <i class="el-icon-search"></i>
+        </template>
+      </el-input>
       <el-button type="primary" icon="el-icon-plus" @click="openDialog('add')">新增角色</el-button>
     </div>
-    <base-table :data="roles" :loading="isLoading">
+    <el-table :data="paginatedRoles" :loading="isLoading" stripe border row-key="id">
       <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="name" label="角色名称" />
+      <el-table-column prop="roleName" label="角色名称" />
       <el-table-column prop="description" label="描述" />
       <el-table-column label="操作" width="240">
         <template #default="{ row }">
-          <el-button link size="small" @click="openDialog('edit', row)">编辑</el-button>
-          <el-button link size="small" @click="assignPermissions(row)">分配权限</el-button>
-          <el-button link size="small" @click="removeRole(row.id)" style="color: #f56c6c">删除</el-button>
+          <div class="action-buttons">
+            <el-button link size="small" class="action-btn-edit" @click="openDialog('edit', row)">编辑</el-button>
+            <el-button link size="small" class="action-btn-view" @click="assignPermissions(row)">分配权限</el-button>
+            <el-button link size="small" class="action-btn-delete" @click="removeRole(row.id)">删除</el-button>
+          </div>
         </template>
       </el-table-column>
-    </base-table>
+    </el-table>
+
+    <div class="pagination-wrap">
+      <el-pagination
+        background
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        :page-size="pageSize"
+        :page-sizes="[10, 20, 50]"
+        :current-page="currentPage"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
+      <div class="pagination-info">
+        当前第 {{ currentPage }} 页，共 {{ Math.ceil(total / pageSize) }} 页
+      </div>
+    </div>
 
     <base-modal title="角色信息" :visible="dialogVisible" @update:visible="dialogVisible = $event" width="520px">
       <base-form ref="roleFormRef" :model="formData" :rules="rules">
-        <el-form-item label="角色名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入角色名称" />
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input v-model="formData.roleName" placeholder="请输入角色名称" />
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input type="textarea" rows="3" v-model="formData.description" placeholder="请输入角色描述" />
@@ -33,7 +62,7 @@
 
     <base-modal title="分配权限" :visible="permissionDialogVisible" @update:visible="permissionDialogVisible = $event" width="600px">
       <div class="permission-assignment">
-        <h4>{{ currentRole?.name }} 的权限分配</h4>
+        <h4>{{ currentRole?.roleName }} 的权限分配</h4>
         <el-checkbox-group v-model="selectedPermissions" @change="handlePermissionChange">
           <el-checkbox v-for="permission in permissions" :key="permission.id" :label="permission.id">
             {{ permission.name }} ({{ permission.code }})
@@ -49,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { fetchRoles, fetchPermissions, getRolePermissions, assignRolePermissions } from '@/api'
 import BaseTable from '@/components/BaseTable.vue'
@@ -58,7 +87,7 @@ import BaseForm from '@/components/BaseForm.vue'
 
 interface RoleItem {
   id: number
-  name: string
+  roleName: string
   description: string
   permissions?: number[]
 }
@@ -72,42 +101,70 @@ interface PermissionItem {
 
 const roles = ref<RoleItem[]>([])
 const permissions = ref<PermissionItem[]>([])
+const searchKeyword = ref('')
+const isLoading = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+const filteredRoles = computed(() => {
+  if (!searchKeyword.value) {
+    return roles.value
+  }
+  return roles.value.filter(role =>
+    role.roleName.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
+    role.description.toLowerCase().includes(searchKeyword.value.toLowerCase())
+  )
+})
+
+const paginatedRoles = computed(() => {
+  const filtered = filteredRoles.value
+  total.value = filtered.length
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filtered.slice(start, end)
+})
+
+const handleSearch = () => {
+  currentPage.value = 1
+  // 搜索逻辑由computed属性自动处理
+}
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+}
+
+const handleSizeChange = (size: number) => {
+  pageSize.value = size
+  currentPage.value = 1
+}
 const dialogVisible = ref(false)
 const permissionDialogVisible = ref(false)
 const currentMode = ref<'add' | 'edit'>('add')
 const editingId = ref<number | null>(null)
 const roleFormRef = ref()
-const isLoading = ref(false)
 const currentRole = ref<RoleItem | null>(null)
 const selectedPermissions = ref<number[]>([])
 
 const formData = reactive<RoleItem>({
   id: 0,
-  name: '',
+  roleName: '',
   description: ''
 })
 
 const rules = {
-  name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
+  roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
   description: [{ required: true, message: '请输入角色描述', trigger: 'blur' }]
 }
 
 const loadRoles = async () => {
   isLoading.value = true
   try {
-    const response = await fetchRoles()
-    roles.value = Array.isArray(response) ? response : [
-      { id: 1, name: '管理员', description: '系统权限最多，可管理所有模块' },
-      { id: 2, name: '普通用户', description: '可查看待办及个人任务' },
-      { id: 3, name: '审核员', description: '可处理待办审批及转交' }
-    ]
+    const data = await fetchRoles()
+    roles.value = Array.isArray(data) ? data : []
   } catch (error) {
-    ElMessage.error('角色数据加载失败')
-    roles.value = [
-      { id: 1, name: '管理员', description: '系统权限最多，可管理所有模块' },
-      { id: 2, name: '普通用户', description: '可查看待办及个人任务' },
-      { id: 3, name: '审核员', description: '可处理待办审批及转交' }
-    ]
+    console.error('角色数据加载失败:', error)
+    roles.value = []
   } finally {
     isLoading.value = false
   }
@@ -115,27 +172,11 @@ const loadRoles = async () => {
 
 const loadPermissions = async () => {
   try {
-    const response = await fetchPermissions()
-    permissions.value = Array.isArray(response) ? response : [
-      { id: 1, name: '查看待办', code: 'todo:view', description: '查看待办事项列表' },
-      { id: 2, name: '新增待办', code: 'todo:create', description: '新增待办事项' },
-      { id: 3, name: '编辑待办', code: 'todo:edit', description: '编辑待办事项' },
-      { id: 4, name: '删除待办', code: 'todo:delete', description: '删除待办事项' },
-      { id: 5, name: '管理用户', code: 'user:manage', description: '管理系统用户' },
-      { id: 6, name: '管理角色', code: 'role:manage', description: '管理系统角色' },
-      { id: 7, name: '管理部门', code: 'department:manage', description: '管理系统部门' }
-    ]
+    const data = await fetchPermissions()
+    permissions.value = Array.isArray(data) ? data : []
   } catch (error) {
-    ElMessage.error('权限数据加载失败')
-    permissions.value = [
-      { id: 1, name: '查看待办', code: 'todo:view', description: '查看待办事项列表' },
-      { id: 2, name: '新增待办', code: 'todo:create', description: '新增待办事项' },
-      { id: 3, name: '编辑待办', code: 'todo:edit', description: '编辑待办事项' },
-      { id: 4, name: '删除待办', code: 'todo:delete', description: '删除待办事项' },
-      { id: 5, name: '管理用户', code: 'user:manage', description: '管理系统用户' },
-      { id: 6, name: '管理角色', code: 'role:manage', description: '管理系统角色' },
-      { id: 7, name: '管理部门', code: 'department:manage', description: '管理系统部门' }
-    ]
+    console.error('权限数据加载失败:', error)
+    permissions.value = []
   }
 }
 
@@ -143,7 +184,7 @@ const openDialog = (mode: 'add' | 'edit', row?: RoleItem) => {
   currentMode.value = mode
   if (mode === 'add') {
     editingId.value = null
-    Object.assign(formData, { id: Date.now(), name: '', description: '' })
+    Object.assign(formData, { id: Date.now(), roleName: '', description: '' })
   } else if (row) {
     editingId.value = row.id
     Object.assign(formData, row)
@@ -176,8 +217,8 @@ const removeRole = (id: number) => {
 const assignPermissions = async (role: RoleItem) => {
   currentRole.value = role
   try {
-    const response = await getRolePermissions(role.id)
-    selectedPermissions.value = Array.isArray(response) ? response : role.permissions || []
+    const data = await getRolePermissions(role.id)
+    selectedPermissions.value = Array.isArray(data) ? data : role.permissions || []
   } catch (error) {
     ElMessage.error('获取角色权限失败')
     selectedPermissions.value = role.permissions || []
@@ -247,5 +288,61 @@ onMounted(() => {
 .permission-assignment .el-checkbox__label {
   margin-left: 8px;
   color: #666;
+}
+
+/* 确保表格单元格文本颜色为深黑色 */
+:deep(.el-table .cell) {
+  color: #0d0c0c !important;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 操作按钮颜色 */
+.action-btn-view {
+  color: var(--gov-primary) !important;
+}
+
+.action-btn-view:hover {
+  color: var(--gov-primary-light) !important;
+}
+
+.action-btn-edit {
+  color: var(--gov-warning) !important;
+}
+
+.action-btn-edit:hover {
+  color: #fbbf24 !important;
+}
+
+.action-btn-delete {
+  color: var(--gov-danger) !important;
+}
+
+.action-btn-delete:hover {
+  color: #f87171 !important;
+}
+
+.pagination-wrap {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
 }
 </style>

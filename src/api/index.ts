@@ -26,7 +26,11 @@ service.interceptors.request.use(
     const token = localStorage.getItem('token')
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
+      console.log('Token found:', token.substring(0, 20) + '...')
+    } else {
+      console.log('No token found')
     }
+    console.log('Request URL:', config.url)
     return config
   },
   (error) => Promise.reject(error)
@@ -37,7 +41,11 @@ todoService.interceptors.request.use(
     const token = localStorage.getItem('token')
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
+      console.log('Token found in todoService:', token.substring(0, 20) + '...')
+    } else {
+      console.log('No token found in todoService')
     }
+    console.log('Todo request URL:', config.url)
     return config
   },
   (error) => Promise.reject(error)
@@ -57,7 +65,7 @@ service.interceptors.response.use(
     const status = error.response?.status
     const data = error.response?.data
 
-    if (status === 401) {
+    if (status === 401 || (data?.message && data.message.includes('JWT expired'))) {
       ElMessage.error('登录已过期，请重新登录')
       const userStore = useUserStore()
       userStore.logout()
@@ -109,7 +117,7 @@ export interface LoginPayload {
 }
 
 export const loginRequest = (payload: LoginPayload) =>
-  service.post('/api/system/api/user/login', payload)
+  service.post('/api/login', payload)
 
 export const registerUser = (payload: {
   username: string
@@ -117,10 +125,10 @@ export const registerUser = (payload: {
   email?: string
   departmentId?: number
 }) =>
-  service.post('/api/system/api/user/register', payload)
+  service.post('/api/system/user/register', payload)
 
 export const getUserInfo = () =>
-  service.get('/api/system/api/user/info')
+  service.get('/api/system/user/info')
 
 export interface TodoQueryParams {
   page?: number
@@ -131,58 +139,67 @@ export interface TodoQueryParams {
 }
 
 export const fetchTodos = (params?: TodoQueryParams) =>
-  todoService.get('/api/todo/list', { params })
+  service.get('/api/todo/list', { params })
 
 export const fetchTodoDetail = (id: number | string) =>
-  todoService.get(`/api/todo/${id}`)
+  service.get(`/api/todo/${id}`)
 
 export const createTodo = (payload: Record<string, any>) =>
-  todoService.post('/api/todo', payload)
+  service.post('/api/todo', payload)
 
 export const updateTodo = (id: number | string, payload: Record<string, any>) =>
-  todoService.put(`/api/todo/${id}`, payload)
+  service.put(`/api/todo/${id}`, payload)
 
 export const deleteTodo = (id: number | string) =>
-  todoService.delete(`/api/todo/${id}`)
+  service.delete(`/api/todo/${id}`)
 
 export const changeTodoStatus = (id: number | string, status: string) =>
-  todoService.patch(`/api/todo/${id}/status`, { status })
+  service.patch(`/api/todo/${id}/status`, { status })
 
 export const transferTodo = (id: number | string, assignee: string) =>
-  todoService.patch(`/api/todo/${id}/transfer`, { assignee })
+  service.patch(`/api/todo/${id}/transfer`, { assignee })
 
 export const fetchUsers = () =>
-  service.get('/api/system/api/users')
+  service.get('/api/users')
 
 export const fetchRoles = () =>
-  service.get('/api/system/api/roles')
+  service.get('/api/roles')
 
 export const fetchDepartments = () =>
-  service.get('/api/system/api/departments')
+  service.get('/api/departments')
+
+export const createDepartment = (payload: { name: string; leader: string }) =>
+  service.post('/api/departments', payload)
+
+export const updateDepartment = (id: number | string, payload: { name: string; leader: string }) =>
+  service.put(`/api/departments/${id}`, payload)
+
+export const deleteDepartment = (id: number | string) =>
+  service.delete(`/api/departments/${id}`)
 
 export const fetchPermissions = (params?: Record<string, any>) =>
-  service.get('/api/system/api/permissions', { params })
+  service.get('/api/permissions', { params })
 
 export const createPermission = (payload: Record<string, any>) =>
-  service.post('/api/system/api/permissions', payload)
+  service.post('/api/permissions', payload)
 
 export const updatePermission = (id: number | string, payload: Record<string, any>) =>
-  service.put(`/api/system/api/permissions/${id}`, payload)
+  service.put(`/api/permissions/${id}`, payload)
 
 export const deletePermission = (id: number | string) =>
-  service.delete(`/api/system/api/permissions/${id}`)
+  service.delete(`/api/permissions/${id}`)
 
 export const fetchModules = () =>
-  service.get('/api/system/api/modules')
+  service.get('/api/modules')
 
 export const assignRolePermissions = (roleId: number | string, permissionIds: number[]) =>
-  service.post(`/api/system/api/roles/${roleId}/permissions`, { permissionIds })
+  service.post(`/api/roles/${roleId}/permissions`, { permissionIds })
 
 export const getRolePermissions = (roleId: number | string) =>
-  service.get(`/api/system/api/roles/${roleId}/permissions`)
+  service.get(`/api/roles/${roleId}/permissions`)
 
 export const fetchTodoStatistics = (params?: Record<string, any>) =>
-  todoService.get('/api/todo/statistics', { params })
+  service.get('/api/todo/statistics', { params })
 
 export const exportCsv = (data: string, filename = 'export.csv') => {
   const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' })

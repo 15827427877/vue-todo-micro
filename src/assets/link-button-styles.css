@@ -1,0 +1,11 @@
+/* 链接按钮样式 */
+.el-button--text {
+  color: var(--gov-text) !important;
+  font-weight: 400;
+  transition: all 0.3s ease;
+}
+
+.el-button--text:hover {
+  color: var(--gov-primary) !important;
+  background: rgba(22, 93, 255, 0.08) !important;
+}
