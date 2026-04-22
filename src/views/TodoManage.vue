@@ -2,7 +2,7 @@
   <div>
     <div class="page-toolbar">
       <div>
-        <el-button type="primary" icon="el-icon-plus" @click="openDialog('add')">新增待办</el-button>
+        <el-button v-if="hasEditPermission" type="primary" icon="el-icon-plus" @click="openDialog('add')">新增待办</el-button>
         <el-button type="success" icon="el-icon-download" @click="handleExport">导出列表</el-button>
       </div>
       <div class="search-block">
@@ -31,8 +31,8 @@
         <template #default="{ row }">
           <div class="action-buttons">
             <el-button link size="small" class="action-btn-view" @click="viewDetail(row.id)">详情</el-button>
-            <el-button link size="small" class="action-btn-edit" @click="openDialog('edit', row)">编辑</el-button>
-            <el-button link size="small" class="action-btn-delete" @click="deleteTask(row)">删除</el-button>
+            <el-button v-if="hasEditPermission" link size="small" class="action-btn-edit" @click="openDialog('edit', row)">编辑</el-button>
+            <el-button v-if="hasDeletePermission" link size="small" class="action-btn-delete" @click="deleteTask(row)">删除</el-button>
             <el-dropdown trigger="click" size="small">
               <el-button link size="small" class="action-btn-more">更多操作 <i class="el-icon-arrow-down el-icon--right"></i></el-button>
               <template #dropdown>
@@ -99,12 +99,13 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { exportCsv, fetchTodos, createTodo, updateTodo, deleteTodo, changeTodoStatus, transferTodo } from '@/api'
 import BaseTable from '@/components/BaseTable.vue'
 import BaseForm from '@/components/BaseForm.vue'
+import { useUserStore } from '@/stores/user'
 
 interface TodoItem {
   id: number
@@ -116,6 +117,7 @@ interface TodoItem {
 }
 
 const router = useRouter()
+const userStore = useUserStore()
 const searchKeyword = ref('')
 const formVisible = ref(false)
 const currentMode = ref<'add' | 'edit'>('add')
@@ -127,6 +129,17 @@ const pageSize = ref(10)
 const total = ref(0)
 const sortField = ref('')
 const sortOrder = ref<'asc' | 'desc' | ''>('')
+
+// 检查用户是否有编辑和删除权限
+const hasEditPermission = computed(() => {
+  const roles = userStore.roles
+  return roles.includes('1') || roles.includes('2') // 1: 超级管理员, 2: 管理员
+})
+
+const hasDeletePermission = computed(() => {
+  const roles = userStore.roles
+  return roles.includes('1') // 1: 超级管理员
+})
 
 const taskForm = reactive<TodoItem>({
   id: 0,

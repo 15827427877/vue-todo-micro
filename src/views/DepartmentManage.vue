@@ -12,7 +12,7 @@
           <i class="el-icon-search"></i>
         </template>
       </el-input>
-      <el-button type="primary" icon="el-icon-plus" @click="openDialog('add')">新增部门</el-button>
+      <el-button v-if="hasEditPermission" type="primary" icon="el-icon-plus" @click="openDialog('add')">新增部门</el-button>
     </div>
     <base-table :data="paginatedDepartments" :loading="isLoading">
       <el-table-column prop="id" label="ID" width="80" />
@@ -21,8 +21,8 @@
       <el-table-column label="操作" width="180">
         <template #default="{ row }">
           <div class="action-buttons">
-            <el-button link size="small" class="action-btn-edit" @click="openDialog('edit', row)">编辑</el-button>
-            <el-button link size="small" class="action-btn-delete" @click="removeDepartment(row.id)">删除</el-button>
+            <el-button v-if="hasEditPermission" link size="small" class="action-btn-edit" @click="openDialog('edit', row)">编辑</el-button>
+            <el-button v-if="hasDeletePermission" link size="small" class="action-btn-delete" @click="removeDepartment(row.id)">删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -68,6 +68,7 @@ import BaseTable from '@/components/BaseTable.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import BaseForm from '@/components/BaseForm.vue'
 import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/stores/user'
 
 interface DepartmentItem {
   id: number
@@ -75,6 +76,7 @@ interface DepartmentItem {
   leader: string
 }
 
+const userStore = useUserStore()
 const departments = ref<DepartmentItem[]>([])
 
 const searchKeyword = ref('')
@@ -82,6 +84,17 @@ const isLoading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+
+// 检查用户是否有编辑和删除权限
+const hasEditPermission = computed(() => {
+  const roles = userStore.roles
+  return roles.includes('1') || roles.includes('2') // 1: 超级管理员, 2: 管理员
+})
+
+const hasDeletePermission = computed(() => {
+  const roles = userStore.roles
+  return roles.includes('1') // 1: 超级管理员
+})
 
 const filteredDepartments = computed(() => {
   if (!searchKeyword.value) {

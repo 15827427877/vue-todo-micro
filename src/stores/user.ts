@@ -9,12 +9,26 @@ export interface UserState {
 }
 
 export const useUserStore = defineStore('user', {
-  state: (): UserState => ({
-    token: localStorage.getItem('token') || '',
-    name: localStorage.getItem('name') || '访客',
-    userId: localStorage.getItem('userId') || '',
-    roles: JSON.parse(localStorage.getItem('roles') || '[]')
-  }),
+  state: (): UserState => {
+    let roles: string[] = ['1'] // 默认角色：超级管理员
+    try {
+      const storedRoles = localStorage.getItem('roles')
+      if (storedRoles) {
+        const parsedRoles = JSON.parse(storedRoles)
+        if (Array.isArray(parsedRoles) && parsedRoles.length > 0) {
+          roles = parsedRoles
+        }
+      }
+    } catch (e) {
+      console.error('解析角色数据失败，使用默认角色:', e)
+    }
+    return {
+      token: localStorage.getItem('token') || '',
+      name: localStorage.getItem('name') || '访客',
+      userId: localStorage.getItem('userId') || '',
+      roles: roles
+    }
+  },
   actions: {
     setToken(token: string, name: string = '', userId: string = '', roles: string[] = []) {
       this.token = token
@@ -52,10 +66,39 @@ export const useUserStore = defineStore('user', {
           // 如果直接返回token
           token = response
         } else if (response && typeof response === 'object') {
-          token = response.token || response.accessToken || ''
-          name = response.name || response.username || username
-          userId = response.userId || response.id || ''
-          roles = response.roles || response.authorities || []
+          // 检查是否有data字段
+          if (response.data) {
+            if (typeof response.data === 'string') {
+              // 如果data是字符串，直接作为token
+              token = response.data
+            } else if (typeof response.data === 'object') {
+              // 如果data是对象，从对象中获取token
+              token = response.data.token || response.data.accessToken || ''
+              name = response.data.name || response.data.username || username
+              userId = response.data.userId || response.data.id || ''
+              // 处理角色，确保返回数组
+              const rawRoles = response.data.roles || response.data.authorities
+              if (Array.isArray(rawRoles)) {
+                roles = rawRoles
+              } else if (rawRoles) {
+                // 如果是单个角色字符串，转换为数组
+                roles = [rawRoles]
+              }
+            }
+          } else {
+            // 直接从响应对象中获取token
+            token = response.token || response.accessToken || ''
+            name = response.name || response.username || username
+            userId = response.userId || response.id || ''
+            // 处理角色，确保返回数组
+            const rawRoles = response.roles || response.authorities
+            if (Array.isArray(rawRoles)) {
+              roles = rawRoles
+            } else if (rawRoles) {
+              // 如果是单个角色字符串，转换为数组
+              roles = [rawRoles]
+            }
+          }
         }
         
         if (!token) {
@@ -75,7 +118,16 @@ export const useUserStore = defineStore('user', {
         if (response) {
           this.name = response.name || response.username || this.name
           this.userId = response.userId || response.id || this.userId
-          this.roles = response.roles || response.authorities || this.roles
+          // 处理角色，确保返回数组
+          const rawRoles = response.roles || response.authorities
+          if (Array.isArray(rawRoles)) {
+            this.roles = rawRoles
+          } else if (rawRoles) {
+            // 如果是单个角色字符串，转换为数组
+            this.roles = [rawRoles]
+          } else {
+            this.roles = this.roles
+          }
           this.setToken(this.token, this.name, this.userId, this.roles)
         }
       } catch (error) {

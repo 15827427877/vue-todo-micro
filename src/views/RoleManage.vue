@@ -12,7 +12,7 @@
           <i class="el-icon-search"></i>
         </template>
       </el-input>
-      <el-button type="primary" icon="el-icon-plus" @click="openDialog('add')">新增角色</el-button>
+      <el-button v-if="hasEditPermission" type="primary" icon="el-icon-plus" @click="openDialog('add')">新增角色</el-button>
     </div>
     <el-table :data="paginatedRoles" :loading="isLoading" stripe border row-key="id">
       <el-table-column prop="id" label="ID" width="80" />
@@ -21,9 +21,9 @@
       <el-table-column label="操作" width="240">
         <template #default="{ row }">
           <div class="action-buttons">
-            <el-button link size="small" class="action-btn-edit" @click="openDialog('edit', row)">编辑</el-button>
-            <el-button link size="small" class="action-btn-view" @click="assignPermissions(row)">分配权限</el-button>
-            <el-button link size="small" class="action-btn-delete" @click="removeRole(row.id)">删除</el-button>
+            <el-button v-if="hasEditPermission" link size="small" class="action-btn-edit" @click="openDialog('edit', row)">编辑</el-button>
+            <el-button v-if="hasAssignPermission" link size="small" class="action-btn-view" @click="assignPermissions(row)">分配权限</el-button>
+            <el-button v-if="hasDeletePermission" link size="small" class="action-btn-delete" @click="removeRole(row.id)">删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -84,6 +84,7 @@ import { fetchRoles, fetchPermissions, getRolePermissions, assignRolePermissions
 import BaseTable from '@/components/BaseTable.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import BaseForm from '@/components/BaseForm.vue'
+import { useUserStore } from '@/stores/user'
 
 interface RoleItem {
   id: number
@@ -99,6 +100,7 @@ interface PermissionItem {
   description: string
 }
 
+const userStore = useUserStore()
 const roles = ref<RoleItem[]>([])
 const permissions = ref<PermissionItem[]>([])
 const searchKeyword = ref('')
@@ -106,6 +108,22 @@ const isLoading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+
+// 检查用户是否有编辑、删除和分配权限的权限
+const hasEditPermission = computed(() => {
+  const roles = userStore.roles
+  return roles.includes('1') // 1: 超级管理员
+})
+
+const hasDeletePermission = computed(() => {
+  const roles = userStore.roles
+  return roles.includes('1') // 1: 超级管理员
+})
+
+const hasAssignPermission = computed(() => {
+  const roles = userStore.roles
+  return roles.includes('1') || roles.includes('2') // 1: 超级管理员, 2: 管理员
+})
 
 const filteredRoles = computed(() => {
   if (!searchKeyword.value) {
