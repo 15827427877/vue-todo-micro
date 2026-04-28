@@ -23,12 +23,17 @@ const todoService = axios.create({
 
 service.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`
-      console.log('Token found:', token.substring(0, 20) + '...')
-    } else {
-      console.log('No token found')
+    // 登录接口不需要token，跳过token添加
+    const isLoginRequest = config.url === '/api/login' || config.url?.includes('/login')
+    
+    if (!isLoginRequest) {
+      const token = localStorage.getItem('token')
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`
+        console.log('Token found:', token.substring(0, 20) + '...')
+      } else if (!isLoginRequest) {
+        console.log('No token found')
+      }
     }
     console.log('Request URL:', config.url)
     return config
@@ -38,12 +43,17 @@ service.interceptors.request.use(
 
 todoService.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`
-      console.log('Token found in todoService:', token.substring(0, 20) + '...')
-    } else {
-      console.log('No token found in todoService')
+    // 登录接口不需要token，跳过token添加
+    const isLoginRequest = config.url === '/api/login' || config.url?.includes('/login')
+    
+    if (!isLoginRequest) {
+      const token = localStorage.getItem('token')
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`
+        console.log('Token found in todoService:', token.substring(0, 20) + '...')
+      } else if (!isLoginRequest) {
+        console.log('No token found in todoService')
+      }
     }
     console.log('Todo request URL:', config.url)
     return config

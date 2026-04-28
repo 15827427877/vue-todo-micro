@@ -12,7 +12,7 @@
         <div class="particle"></div>
       </div>
     </div>
-    
+
     <!-- 主内容区 -->
     <div class="login-content">
       <!-- 左侧品牌区域 -->
@@ -25,7 +25,7 @@
         </div>
         <h1 class="brand-title">智能待办管理系统</h1>
         <p class="brand-description">打造高效、安全、便捷的政务办公平台</p>
-        
+
         <div class="brand-features">
           <div class="feature-item">
             <div class="feature-icon">
@@ -53,7 +53,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 右侧登录区域 -->
       <div class="login-section" :class="{ 'animate-in': isVisible }">
         <div class="login-card">
@@ -61,11 +61,11 @@
             <h2 class="login-title">欢迎回来</h2>
             <p class="login-subtitle">请登录您的账户</p>
           </div>
-          
+
           <!-- 登录表单 -->
           <el-form :model="form" :rules="rules" ref="formRef" class="login-form">
             <el-form-item prop="username">
-              <div class="form-group">
+              <div class="form-row">
                 <label class="form-label">用户名</label>
                 <div class="input-wrapper" :class="{ 'focused': isUsernameFocus }">
                   <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
@@ -82,13 +82,10 @@
                 </div>
               </div>
             </el-form-item>
-            
+
             <el-form-item prop="password">
-              <div class="form-group">
-                <div class="form-label-row">
-                  <label class="form-label">密码</label>
-                  <a href="#" class="forgot-password">忘记密码?</a>
-                </div>
+              <div class="form-row">
+                <label class="form-label">密　码</label>
                 <div class="input-wrapper" :class="{ 'focused': isPasswordFocus }">
                   <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
                     <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" fill="currentColor"/>
@@ -107,13 +104,14 @@
                 </div>
               </div>
             </el-form-item>
-            
+
             <div class="form-options">
               <el-checkbox v-model="rememberMe" class="remember-me">
                 <span>记住我</span>
               </el-checkbox>
+              <a href="#" class="forgot-password">忘记密码?</a>
             </div>
-            
+
             <el-button
               type="primary"
               size="large"
@@ -124,7 +122,7 @@
               {{ loading ? '登录中...' : '登 录' }}
             </el-button>
           </el-form>
-          
+
           <!-- 其他登录方式 -->
           <div class="alternative-login">
             <div class="divider">
@@ -146,10 +144,10 @@
             </div>
           </div>
         </div>
-        
+
         <!-- 版权信息 -->
         <div class="login-footer">
-          <p>© 2024 政务管理系统 · 安全高效 · 便捷办公</p>
+          <p>© 2026 政务管理系统 · 安全高效 · 便捷办公</p>
         </div>
       </div>
     </div>
@@ -343,7 +341,7 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
+  background-image:
     linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -502,26 +500,25 @@ onMounted(() => {
 
 /* 表单样式 */
 .login-form {
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
-.form-group {
-  margin-bottom: 24px;
-}
-
-.form-label-row {
+.form-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
+  gap: 20px;
+  height: 56px;
 }
 
 .form-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8px;
-  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  width: 80px;
+  flex-shrink: 0;
+  text-align: right;
+  letter-spacing: 2px;
 }
 
 .forgot-password {
@@ -538,13 +535,15 @@ onMounted(() => {
 
 .input-wrapper {
   position: relative;
-  border: 2px solid #e4e7ed;
+  border: 2px solid #dcdfe6;
   border-radius: 12px;
   transition: all 0.3s ease;
   overflow: hidden;
+  flex: 1;
+  background: #fafbfc;
 }
 
-.input-wrapper:focused {
+.input-wrapper:focus-within {
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
@@ -559,7 +558,7 @@ onMounted(() => {
   z-index: 1;
 }
 
-.input-wrapper:focused .input-icon {
+.input-wrapper:focus-within .input-icon {
   color: #667eea;
 }
 
@@ -568,17 +567,24 @@ onMounted(() => {
   outline: none !important;
   box-shadow: none !important;
   padding-left: 48px !important;
-  height: 52px !important;
+  height: 56px !important;
   font-size: 16px !important;
+  line-height: 56px !important;
 }
 
 .el-input__wrapper {
   box-shadow: none !important;
   border: none !important;
+  height: 56px !important;
+  line-height: 56px !important;
+  background: transparent !important;
 }
 
 .form-options {
-  margin-bottom: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
 }
 
 .remember-me {
@@ -594,7 +600,7 @@ onMounted(() => {
 /* 登录按钮 */
 .login-button {
   width: 100%;
-  height: 52px;
+  height: 56px;
   border-radius: 12px !important;
   font-size: 18px !important;
   font-weight: 600 !important;
@@ -691,22 +697,22 @@ onMounted(() => {
     gap: 40px;
     padding: 40px 20px;
   }
-  
+
   .brand-section {
     max-width: 100%;
     text-align: center;
     order: 2;
   }
-  
+
   .login-section {
     max-width: 100%;
     order: 1;
   }
-  
+
   .brand-features {
     align-items: center;
   }
-  
+
   .feature-item {
     justify-content: center;
   }
@@ -716,23 +722,23 @@ onMounted(() => {
   .login-card {
     padding: 32px;
   }
-  
+
   .brand-title {
     font-size: 28px;
   }
-  
+
   .brand-description {
     font-size: 16px;
   }
-  
+
   .login-title {
     font-size: 24px;
   }
-  
+
   .el-input {
     height: 48px !important;
   }
-  
+
   .login-button {
     height: 48px !important;
   }
