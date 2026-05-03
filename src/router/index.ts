@@ -10,6 +10,8 @@ import PermissionManage from '@/views/PermissionManage.vue'
 import TodoManage from '@/views/TodoManage.vue'
 import TodoDetail from '@/views/TodoDetail.vue'
 import TodoStatistics from '@/views/TodoStatistics.vue'
+import ApprovalCenter from '@/views/ApprovalCenter.vue'
+import SystemSettings from '@/views/SystemSettings.vue'
 
 const routes = [
   {
@@ -69,6 +71,18 @@ const routes = [
         name: 'PermissionManage',
         component: PermissionManage,
         meta: { title: '权限管理', requiresAuth: true }
+      },
+      {
+        path: 'approval',
+        name: 'ApprovalCenter',
+        component: ApprovalCenter,
+        meta: { title: '审批中心', requiresAuth: true }
+      },
+      {
+        path: 'settings',
+        name: 'SystemSettings',
+        component: SystemSettings,
+        meta: { title: '系统设置', requiresAuth: true }
       }
     ]
   }

@@ -3,6 +3,7 @@
     <div class="page-toolbar">
       <div>
         <el-button v-if="hasEditPermission" type="primary" icon="el-icon-plus" @click="openDialog('add')">新增待办</el-button>
+        <el-button v-if="hasDeletePermission" type="danger" icon="el-icon-delete" :disabled="selectedIds.length === 0" @click="batchDeleteTasks">批量删除</el-button>
         <el-button type="success" icon="el-icon-download" @click="handleExport">导出列表</el-button>
       </div>
       <div class="search-block">
@@ -17,7 +18,13 @@
       </div>
     </div>
 
-    <base-table :data="todos" :loading="isLoading" @sort-change="handleSortChange">
+    <base-table 
+      :data="todos" 
+      :loading="isLoading" 
+      :show-selection="true"
+      @selection-change="handleSelectionChange"
+      @sort-change="handleSortChange"
+    >
       <el-table-column prop="id" label="ID" width="80" sortable />
       <el-table-column prop="title" label="待办标题" sortable />
       <el-table-column prop="assignee" label="分配给" width="150" sortable />
@@ -68,31 +75,93 @@
       </div>
     </div>
 
-    <el-dialog title="待办信息" v-model="formVisible" width="520px">
-      <base-form ref="taskFormRef" :model="taskForm" :rules="rules">
-        <el-form-item label="标题" prop="title">
-          <el-input v-model="taskForm.title" placeholder="请输入待办标题" />
-        </el-form-item>
-        <el-form-item label="负责人" prop="assignee">
-          <el-input v-model="taskForm.assignee" placeholder="请输入负责人" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="taskForm.status" placeholder="请选择状态">
-            <el-option label="待处理" value="待处理" />
-            <el-option label="处理中" value="处理中" />
-            <el-option label="已完成" value="已完成" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="截止日期" prop="deadline">
-          <el-date-picker v-model="taskForm.deadline" type="date" placeholder="选择截止日期" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input type="textarea" rows="3" v-model="taskForm.description" placeholder="任务描述" />
-        </el-form-item>
-      </base-form>
+    <el-dialog 
+      :title="currentMode === 'add' ? '新增待办' : '编辑待办'" 
+      v-model="formVisible" 
+      width="560px"
+      :close-on-click-modal="false"
+      class="todo-edit-dialog"
+    >
+      <div class="dialog-content">
+        <base-form ref="taskFormRef" :model="taskForm" :rules="rules">
+          <div class="form-section">
+            <div class="section-title">
+              <i class="el-icon-document"></i>
+              基本信息
+            </div>
+            <el-form-item label="标题" prop="title">
+              <el-input 
+                v-model="taskForm.title" 
+                placeholder="请输入待办标题" 
+                clearable
+                maxlength="100"
+                show-word-limit
+              />
+            </el-form-item>
+            <div class="form-row">
+              <el-form-item label="负责人" prop="assignee" style="flex: 1">
+                <el-input 
+                  v-model="taskForm.assignee" 
+                  placeholder="请输入负责人" 
+                  clearable
+                />
+              </el-form-item>
+              <el-form-item label="状态" prop="status" style="flex: 1">
+                <el-select 
+                  v-model="taskForm.status" 
+                  placeholder="请选择状态"
+                  style="width: 100%"
+                >
+                  <el-option label="待处理" value="待处理">
+                    <span style="color: #e6a23c">●</span> 待处理
+                  </el-option>
+                  <el-option label="处理中" value="处理中">
+                    <span style="color: #409eff">●</span> 处理中
+                  </el-option>
+                  <el-option label="已完成" value="已完成">
+                    <span style="color: #67c23a">●</span> 已完成
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </div>
+            <el-form-item label="截止日期" prop="deadline">
+              <el-date-picker 
+                v-model="taskForm.deadline" 
+                type="date" 
+                placeholder="选择截止日期" 
+                style="width: 100%"
+                format="YYYY-MM-DD"
+                value-format="YYYY-MM-DD"
+              />
+            </el-form-item>
+          </div>
+          
+          <div class="form-section">
+            <div class="section-title">
+              <i class="el-icon-document"></i>
+              任务描述
+            </div>
+            <el-form-item label="" prop="description">
+              <el-input 
+                type="textarea" 
+                :rows="4" 
+                v-model="taskForm.description" 
+                placeholder="请输入任务描述（可选）" 
+                maxlength="500"
+                show-word-limit
+              />
+            </el-form-item>
+          </div>
+        </base-form>
+      </div>
       <template #footer>
-        <el-button @click="closeDialog">取消</el-button>
-        <el-button type="primary" @click="saveTask">保存</el-button>
+        <div class="dialog-footer">
+          <el-button @click="closeDialog">取消</el-button>
+          <el-button type="primary" @click="saveTask">
+            <i class="el-icon-check"></i>
+            {{ currentMode === 'add' ? '新增' : '保存' }}
+          </el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -102,7 +171,7 @@
 import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { exportCsv, fetchTodos, createTodo, updateTodo, deleteTodo, changeTodoStatus, transferTodo } from '@/api'
+import { exportCsv, fetchTodos, createTodo, updateTodo, deleteTodo, changeTodoStatus, transferTodo, batchDeleteTodos } from '@/api'
 import BaseTable from '@/components/BaseTable.vue'
 import BaseForm from '@/components/BaseForm.vue'
 import { useUserStore } from '@/stores/user'
@@ -129,6 +198,8 @@ const pageSize = ref(10)
 const total = ref(0)
 const sortField = ref('')
 const sortOrder = ref<'asc' | 'desc' | ''>('')
+const selectedIds = ref<number[]>([])
+const selectedRows = ref<TodoItem[]>([])
 
 // 检查用户是否有编辑和删除权限
 const hasEditPermission = computed(() => {
@@ -250,6 +321,36 @@ const deleteTask = async (row: TodoItem) => {
     )
     await deleteTodo(row.id)
     ElMessage.success('待办已删除')
+    loadTodos()
+  } catch (error) {
+    // 取消或异常均忽略
+  }
+}
+
+const handleSelectionChange = (selection: TodoItem[]) => {
+  selectedRows.value = selection
+  selectedIds.value = selection.map(row => row.id)
+}
+
+const batchDeleteTasks = async () => {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要删除的待办')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedIds.value.length} 个待办吗？`,
+      '批量删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    await batchDeleteTodos(selectedIds.value)
+    ElMessage.success('批量删除成功')
+    selectedIds.value = []
+    selectedRows.value = []
     loadTodos()
   } catch (error) {
     // 取消或异常均忽略
@@ -444,5 +545,108 @@ onMounted(() => {
 
 .action-btn-more:hover {
   color: var(--gov-primary) !important;
+}
+
+/* 编辑弹窗样式 */
+.todo-edit-dialog :deep(.el-dialog__header) {
+  background: #f8fafc;
+  padding: 20px 24px;
+  margin: 0;
+  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.todo-edit-dialog :deep(.el-dialog__title) {
+  color: #1e293b;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.todo-edit-dialog :deep(.el-dialog__headerbtn) {
+  top: 20px;
+}
+
+.todo-edit-dialog :deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: #64748b;
+  font-size: 20px;
+}
+
+.todo-edit-dialog :deep(.el-dialog__headerbtn .el-dialog__close:hover) {
+  color: #1e293b;
+}
+
+.todo-edit-dialog :deep(.el-dialog__footer) {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 16px 24px;
+  border-radius: 0 0 12px 12px;
+}
+
+.todo-edit-dialog :deep(.el-dialog__body) {
+  padding: 24px;
+}
+
+.dialog-content {
+  padding: 0;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.section-title i {
+  color: #667eea;
+  font-size: 18px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-row .el-form-item {
+  margin-bottom: 18px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.dialog-footer .el-button {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.dialog-footer .el-button--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.dialog-footer .el-button--primary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
 }
 </style>

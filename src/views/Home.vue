@@ -226,13 +226,13 @@ const handleQuickAction = (action: string) => {
       router.push('/statistics')
       break
     case 'approval':
-      ElMessage.info('跳转到审批页面')
+      router.push('/approval')
       break
     case 'transfer':
       ElMessage.info('跳转到任务转交页面')
       break
     case 'settings':
-      ElMessage.info('打开系统设置')
+      router.push('/settings')
       break
     case 'help':
       ElMessage.info('打开帮助文档')

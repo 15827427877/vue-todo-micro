@@ -140,6 +140,33 @@ export const registerUser = (payload: {
 export const getUserInfo = () =>
   service.get('/api/system/user/info')
 
+export const updateUserProfile = (payload: { name?: string; email?: string; phone?: string }) =>
+  service.put('/api/system/user/profile', payload)
+
+export const changePassword = (payload: { oldPassword: string; newPassword: string }) =>
+  service.post('/api/system/user/change-password', payload)
+
+export const getNotificationSettings = () =>
+  service.get('/api/system/settings/notification')
+
+export const updateNotificationSettings = (payload: Record<string, any>) =>
+  service.put('/api/system/settings/notification', payload)
+
+export const getLoginDevices = () =>
+  service.get('/api/system/user/login-devices')
+
+export const logoutDevice = (id: number | string) =>
+  service.delete(`/api/system/user/login-devices/${id}`)
+
+export const logoutAllDevices = () =>
+  service.delete('/api/system/user/login-devices')
+
+export const getLoginLogs = (params?: { page?: number; size?: number }) =>
+  service.get('/api/system/user/login-logs', { params })
+
+export const getOperationLogs = (params?: { page?: number; size?: number }) =>
+  service.get('/api/system/user/operation-logs', { params })
+
 export interface TodoQueryParams {
   page?: number
   size?: number
@@ -216,6 +243,77 @@ export const fetchTodoStatistics = (params?: Record<string, any>) =>
 
 export const fetchRecentActivities = (params?: Record<string, any>) =>
   service.get('/api/activities/recent', { params })
+
+export const recordActivity = (payload: Record<string, any>) =>
+  service.post('/api/activities/record', payload)
+
+export const fetchUserDetail = (id: number | string) =>
+  service.get(`/api/users/${id}`)
+
+export const createUser = (payload: Record<string, any>) =>
+  service.post('/api/users', payload)
+
+export const updateUser = (id: number | string, payload: Record<string, any>) =>
+  service.put(`/api/users/${id}`, payload)
+
+export const deleteUser = (id: number | string) =>
+  service.delete(`/api/users/${id}`)
+
+export const getUserRoles = (userId: number | string) =>
+  service.get(`/api/users/${userId}/roles`)
+
+export const assignUserRoles = (userId: number | string, roleIds: number[]) =>
+  service.post(`/api/users/${userId}/roles`, { roleIds })
+
+export const fetchRoleDetail = (id: number | string) =>
+  service.get(`/api/roles/${id}`)
+
+export const createRole = (payload: Record<string, any>) =>
+  service.post('/api/roles', payload)
+
+export const updateRole = (id: number | string, payload: Record<string, any>) =>
+  service.put(`/api/roles/${id}`, payload)
+
+export const deleteRole = (id: number | string) =>
+  service.delete(`/api/roles/${id}`)
+
+export const batchDeleteTodos = (ids: number[]) =>
+  service.delete('/api/todo/batch', { data: { ids } })
+
+export const fetchDictList = (params?: Record<string, any>) =>
+  service.get('/api/dicts', { params })
+
+export const fetchDictDetail = (id: number | string) =>
+  service.get(`/api/dicts/${id}`)
+
+export const fetchDictByType = (dictType: string) =>
+  service.get(`/api/dicts/type/${dictType}`)
+
+export const createDict = (payload: Record<string, any>) =>
+  service.post('/api/dicts', payload)
+
+export const updateDict = (id: number | string, payload: Record<string, any>) =>
+  service.put(`/api/dicts/${id}`, payload)
+
+export const deleteDict = (id: number | string) =>
+  service.delete(`/api/dicts/${id}`)
+
+export interface ApprovalQueryParams {
+  page?: number
+  size?: number
+  keyword?: string
+  status?: string
+  type?: string
+}
+
+export const fetchApprovalList = (params?: ApprovalQueryParams) =>
+  service.get('/api/approvals', { params })
+
+export const getApprovalDetail = (id: number | string) =>
+  service.get(`/api/approvals/${id}`)
+
+export const submitApproval = (id: number | string, payload: { result: string; comment?: string }) =>
+  service.post(`/api/approvals/${id}/approve`, payload)
 
 export const exportCsv = (data: string, filename = 'export.csv') => {
   const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' })

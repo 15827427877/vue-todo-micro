@@ -93,8 +93,8 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { fetchRoles, fetchPermissions, fetchPermissionsTree, getRolePermissions, assignRolePermissions } from '@/api'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { fetchRoles, fetchPermissionsTree, getRolePermissions, assignRolePermissions, createRole, updateRole, deleteRole } from '@/api'
 import BaseTable from '@/components/BaseTable.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import BaseForm from '@/components/BaseForm.vue'
@@ -227,26 +227,38 @@ const openDialog = (mode: 'add' | 'edit', row?: RoleItem) => {
   dialogVisible.value = true
 }
 
-const saveRole = () => {
-  roleFormRef.value?.validate((valid: boolean) => {
+const saveRole = async () => {
+  roleFormRef.value?.validate(async (valid: boolean) => {
     if (!valid) return
-    if (currentMode.value === 'add') {
-      roles.value.unshift({ ...formData })
-      ElMessage.success('角色已新增')
-    } else {
-      const target = roles.value.find((item) => item.id === editingId.value)
-      if (target) {
-        Object.assign(target, formData)
+    try {
+      if (currentMode.value === 'add') {
+        await createRole({ roleName: formData.roleName, description: formData.description })
+        ElMessage.success('角色已新增')
+      } else {
+        await updateRole(editingId.value!, { roleName: formData.roleName, description: formData.description })
         ElMessage.success('角色已更新')
       }
+      dialogVisible.value = false
+      loadRoles()
+    } catch (error) {
+      ElMessage.error('保存角色失败，请稍后重试')
     }
-    dialogVisible.value = false
   })
 }
 
-const removeRole = (id: number) => {
-  roles.value = roles.value.filter((item) => item.id !== id)
-  ElMessage.success('角色已删除')
+const removeRole = async (id: number) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该角色吗？', '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await deleteRole(id)
+    ElMessage.success('角色已删除')
+    loadRoles()
+  } catch (error) {
+    // 取消或异常均忽略
+  }
 }
 
 const assignPermissions = async (role: RoleItem) => {

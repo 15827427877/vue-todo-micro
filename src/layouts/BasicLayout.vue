@@ -43,6 +43,7 @@ const menuItems = computed(() => {
   const baseItems = [
     { path: '/', label: '首页' },
     { path: '/todo', label: '待办列表' },
+    { path: '/approval', label: '审批中心' },
     { path: '/statistics', label: '查询统计' }
   ]
   
@@ -62,11 +63,16 @@ const menuItems = computed(() => {
     { path: '/department', label: '部门管理' }
   ]
   
+  // 系统设置（放在最下面）
+  const settingsItem = [
+    { path: '/settings', label: '系统设置' }
+  ]
+  
   // 检查用户是否为管理员
   const isAdmin = user.roles && user.roles.includes('admin')
   
   // 组合菜单
-  return [...baseItems, ...manageItems, ...(isAdmin ? adminItems : []), ...departmentItem]
+  return [...baseItems, ...manageItems, ...(isAdmin ? adminItems : []), ...departmentItem, ...settingsItem]
 })
 </script>
 

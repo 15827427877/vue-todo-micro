@@ -16,9 +16,11 @@
     </div>
     <base-table :data="paginatedUsers" :loading="isLoading">
       <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="name" label="用户名" />
-      <el-table-column prop="role" label="角色" />
-      <el-table-column prop="department" label="部门" />
+      <el-table-column prop="username" label="用户名" />
+      <el-table-column prop="name" label="姓名" />
+      <el-table-column prop="roleName" label="角色" />
+      <el-table-column prop="departmentName" label="部门" />
+      <el-table-column prop="email" label="邮箱" />
       <el-table-column label="操作" width="220">
         <template #default="{ row }">
           <div class="action-buttons">
@@ -47,18 +49,24 @@
 
     <base-modal title="用户信息" :visible="dialogVisible" @update:visible="dialogVisible = $event" width="520px">
       <base-form ref="userFormRef" :model="formData" :rules="rules">
-        <el-form-item label="用户名" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入用户名" />
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="formData.username" placeholder="请输入用户名" />
         </el-form-item>
-        <el-form-item label="角色" prop="role">
-          <el-select v-model="formData.role" placeholder="请选择角色">
-            <el-option label="管理员" value="管理员" />
-            <el-option label="普通用户" value="普通用户" />
-            <el-option label="审核员" value="审核员" />
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="formData.name" placeholder="请输入姓名" />
+        </el-form-item>
+        <el-form-item label="角色" prop="roleId">
+          <el-select v-model="formData.roleId" placeholder="请选择角色" style="width: 100%">
+            <el-option v-for="role in allRoles" :key="role.id" :label="role.roleName" :value="role.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="部门" prop="department">
-          <el-input v-model="formData.department" placeholder="请输入部门" />
+        <el-form-item label="部门" prop="departmentId">
+          <el-select v-model="formData.departmentId" placeholder="请选择部门" style="width: 100%">
+            <el-option v-for="dept in allDepartments" :key="dept.id" :label="dept.name" :value="dept.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="formData.email" placeholder="请输入邮箱（选填）" />
         </el-form-item>
       </base-form>
       <template #footer>
@@ -70,24 +78,30 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed } from 'vue'
+import { reactive, ref, computed, onMounted } from 'vue'
 import BaseTable from '@/components/BaseTable.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import BaseForm from '@/components/BaseForm.vue'
 import { useUserStore } from '@/stores/user'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { fetchUsers, createUser, updateUser, deleteUser, fetchRoles, fetchDepartments } from '@/api'
 
 interface UserItem {
   id: number
+  username: string
   name: string
   role: string
+  roleId?: number
+  roleName?: string
   department: string
+  departmentId?: number
+  departmentName?: string
+  email?: string
 }
 
-const users = ref<UserItem[]>([
-  { id: 1, name: '张三', role: '管理员', department: '研发部' },
-  { id: 2, name: '李四', role: '普通用户', department: '测试部' },
-  { id: 3, name: '王五', role: '审核员', department: '市场部' }
-])
+const users = ref<UserItem[]>([])
+const allRoles = ref<{ id: number; roleName: string }[]>([])
+const allDepartments = ref<{ id: number; name: string }[]>([])
 
 const userStore = useUserStore()
 const searchKeyword = ref('')
@@ -111,8 +125,12 @@ const filteredUsers = computed(() => {
   if (!searchKeyword.value) {
     return users.value
   }
+  const keyword = searchKeyword.value.toLowerCase()
   return users.value.filter(user =>
-    user.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+    (user.username && user.username.toLowerCase().includes(keyword)) ||
+    (user.name && user.name.toLowerCase().includes(keyword)) ||
+    (user.roleName && user.roleName.toLowerCase().includes(keyword)) ||
+    (user.departmentName && user.departmentName.toLowerCase().includes(keyword))
   )
 })
 
@@ -145,22 +163,46 @@ const userFormRef = ref()
 
 const formData = reactive<UserItem>({
   id: 0,
+  username: '',
   name: '',
   role: '',
-  department: ''
+  roleId: undefined,
+  department: '',
+  departmentId: undefined,
+  email: ''
 })
 
 const rules = {
-  name: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  role: [{ required: true, message: '请选择角色', trigger: 'change' }],
-  department: [{ required: true, message: '请输入部门', trigger: 'blur' }]
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+  roleId: [{ required: true, message: '请选择角色', trigger: 'change' }],
+  departmentId: [{ required: true, message: '请选择部门', trigger: 'change' }]
+}
+
+const loadUsers = async () => {
+  isLoading.value = true
+  try {
+    const [usersRes, rolesRes, deptsRes] = await Promise.all([
+      fetchUsers(),
+      fetchRoles(),
+      fetchDepartments()
+    ])
+    users.value = usersRes || []
+    allRoles.value = rolesRes || []
+    allDepartments.value = deptsRes || []
+    total.value = users.value.length
+  } catch (error) {
+    ElMessage.error('加载用户列表失败')
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const openDialog = (mode: 'add' | 'edit', row?: UserItem) => {
   currentMode.value = mode
   if (mode === 'add') {
     editingId.value = null
-    Object.assign(formData, { id: Date.now(), name: '', role: '', department: '' })
+    Object.assign(formData, { id: 0, username: '', name: '', role: '', roleId: undefined, department: '', departmentId: undefined, email: '' })
   } else if (row) {
     editingId.value = row.id
     Object.assign(formData, row)
@@ -169,23 +211,49 @@ const openDialog = (mode: 'add' | 'edit', row?: UserItem) => {
 }
 
 const saveUser = () => {
-  userFormRef.value?.validate((valid: boolean) => {
+  userFormRef.value?.validate(async (valid: boolean) => {
     if (!valid) return
-    if (currentMode.value === 'add') {
-      users.value.unshift({ ...formData })
-    } else {
-      const target = users.value.find((item) => item.id === editingId.value)
-      if (target) {
-        Object.assign(target, formData)
+    try {
+      const payload = {
+        username: formData.username,
+        name: formData.name,
+        roleId: formData.roleId,
+        departmentId: formData.departmentId,
+        email: formData.email
       }
+      if (currentMode.value === 'add') {
+        await createUser(payload)
+        ElMessage.success('用户创建成功')
+      } else {
+        await updateUser(editingId.value!, payload)
+        ElMessage.success('用户更新成功')
+      }
+      dialogVisible.value = false
+      loadUsers()
+    } catch (error) {
+      ElMessage.error('保存用户失败')
     }
-    dialogVisible.value = false
   })
 }
 
-const removeUser = (id: number) => {
-  users.value = users.value.filter((item) => item.id !== id)
+const removeUser = async (id: number) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该用户吗？', '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await deleteUser(id)
+    ElMessage.success('用户删除成功')
+    loadUsers()
+  } catch (error) {
+    // 取消或异常均忽略
+  }
 }
+
+onMounted(() => {
+  loadUsers()
+})
 </script>
 
 <style scoped>
