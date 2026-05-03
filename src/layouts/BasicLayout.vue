@@ -63,6 +63,11 @@ const menuItems = computed(() => {
     { path: '/department', label: '部门管理' }
   ]
   
+  // 帮助文档
+  const helpItem = [
+    { path: '/help', label: '帮助文档' }
+  ]
+  
   // 系统设置（放在最下面）
   const settingsItem = [
     { path: '/settings', label: '系统设置' }
@@ -72,7 +77,7 @@ const menuItems = computed(() => {
   const isAdmin = user.roles && user.roles.includes('admin')
   
   // 组合菜单
-  return [...baseItems, ...manageItems, ...(isAdmin ? adminItems : []), ...departmentItem, ...settingsItem]
+  return [...baseItems, ...manageItems, ...(isAdmin ? adminItems : []), ...departmentItem, ...helpItem, ...settingsItem]
 })
 </script>
 

@@ -235,7 +235,7 @@ const handleQuickAction = (action: string) => {
       router.push('/settings')
       break
     case 'help':
-      ElMessage.info('打开帮助文档')
+      router.push('/help')
       break
   }
 }

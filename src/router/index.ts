@@ -12,6 +12,7 @@ import TodoDetail from '@/views/TodoDetail.vue'
 import TodoStatistics from '@/views/TodoStatistics.vue'
 import ApprovalCenter from '@/views/ApprovalCenter.vue'
 import SystemSettings from '@/views/SystemSettings.vue'
+import HelpCenter from '@/views/HelpCenter.vue'
 
 const routes = [
   {
@@ -83,6 +84,12 @@ const routes = [
         name: 'SystemSettings',
         component: SystemSettings,
         meta: { title: '系统设置', requiresAuth: true }
+      },
+      {
+        path: 'help',
+        name: 'HelpCenter',
+        component: HelpCenter,
+        meta: { title: '帮助文档', requiresAuth: true }
       }
     ]
   }
