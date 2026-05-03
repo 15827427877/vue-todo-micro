@@ -1,8 +1,8 @@
 <template>
   <div class="home-container">
     <div class="welcome-section">
-      <h1 class="welcome-title">欢迎使用政务管理系统</h1>
-      <p class="welcome-subtitle">今日工作概览</p>
+      <h1 class="welcome-title">{{ greeting }}，{{ username }}</h1>
+      <p class="welcome-subtitle">今日工作概览 · {{ todayDate }}</p>
     </div>
 
     <div class="dashboard-grid">
@@ -11,11 +11,11 @@
           <i class="el-icon-document-copy"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-number">128</div>
+          <div class="stat-number">{{ statistics.total || 0 }}</div>
           <div class="stat-label">待办总数</div>
-          <div class="stat-trend trend-up">
-            <i class="el-icon-top"></i>
-            <span>+12%</span>
+          <div class="stat-trend" :class="statistics.totalTrend > 0 ? 'trend-up' : statistics.totalTrend < 0 ? 'trend-down' : 'trend-neutral'">
+            <i :class="statistics.totalTrend > 0 ? 'el-icon-top' : statistics.totalTrend < 0 ? 'el-icon-bottom' : 'el-icon-minus'"></i>
+            <span>{{ statistics.totalTrend > 0 ? '+' : '' }}{{ statistics.totalTrend }}%</span>
           </div>
         </div>
       </base-card>
@@ -25,11 +25,11 @@
           <i class="el-icon-date"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-number">16</div>
+          <div class="stat-number">{{ statistics.todayAdded || 0 }}</div>
           <div class="stat-label">今日新增</div>
-          <div class="stat-trend trend-up">
-            <i class="el-icon-top"></i>
-            <span>+8%</span>
+          <div class="stat-trend" :class="statistics.addedTrend > 0 ? 'trend-up' : statistics.addedTrend < 0 ? 'trend-down' : 'trend-neutral'">
+            <i :class="statistics.addedTrend > 0 ? 'el-icon-top' : statistics.addedTrend < 0 ? 'el-icon-bottom' : 'el-icon-minus'"></i>
+            <span>{{ statistics.addedTrend > 0 ? '+' : '' }}{{ statistics.addedTrend }}%</span>
           </div>
         </div>
       </base-card>
@@ -39,11 +39,11 @@
           <i class="el-icon-s-check"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-number">86%</div>
+          <div class="stat-number">{{ statistics.completionRate || 0 }}%</div>
           <div class="stat-label">完成率</div>
-          <div class="stat-trend trend-up">
-            <i class="el-icon-top"></i>
-            <span>+5%</span>
+          <div class="stat-trend" :class="statistics.rateTrend > 0 ? 'trend-up' : statistics.rateTrend < 0 ? 'trend-down' : 'trend-neutral'">
+            <i :class="statistics.rateTrend > 0 ? 'el-icon-top' : statistics.rateTrend < 0 ? 'el-icon-bottom' : 'el-icon-minus'"></i>
+            <span>{{ statistics.rateTrend > 0 ? '+' : '' }}{{ statistics.rateTrend }}%</span>
           </div>
         </div>
       </base-card>
@@ -53,11 +53,11 @@
           <i class="el-icon-bell"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-number">5</div>
+          <div class="stat-number">{{ statistics.pendingApproval || 0 }}</div>
           <div class="stat-label">待审批</div>
-          <div class="stat-trend trend-neutral">
-            <i class="el-icon-minus"></i>
-            <span>0%</span>
+          <div class="stat-trend" :class="statistics.approvalTrend > 0 ? 'trend-up' : statistics.approvalTrend < 0 ? 'trend-down' : 'trend-neutral'">
+            <i :class="statistics.approvalTrend > 0 ? 'el-icon-top' : statistics.approvalTrend < 0 ? 'el-icon-bottom' : 'el-icon-minus'"></i>
+            <span>{{ statistics.approvalTrend > 0 ? '+' : '' }}{{ statistics.approvalTrend }}%</span>
           </div>
         </div>
       </base-card>
@@ -76,23 +76,47 @@
             </div>
             <div class="action-text">新建待办</div>
           </div>
-          <div class="action-item" @click="handleQuickAction('export')">
+          <div class="action-item" @click="handleQuickAction('approval')">
             <div class="action-icon action-icon-success">
-              <i class="el-icon-download"></i>
+              <i class="el-icon-s-check"></i>
             </div>
-            <div class="action-text">导出数据</div>
+            <div class="action-text">审批中心</div>
+          </div>
+          <div class="action-item" @click="handleQuickAction('transfer')">
+            <div class="action-icon action-icon-info">
+              <i class="el-icon-user"></i>
+            </div>
+            <div class="action-text">任务转交</div>
           </div>
           <div class="action-item" @click="handleQuickAction('search')">
-            <div class="action-icon action-icon-info">
+            <div class="action-icon action-icon-warning">
               <i class="el-icon-search"></i>
             </div>
             <div class="action-text">高级搜索</div>
           </div>
+          <div class="action-item" @click="handleQuickAction('export')">
+            <div class="action-icon action-icon-danger">
+              <i class="el-icon-download"></i>
+            </div>
+            <div class="action-text">导出数据</div>
+          </div>
           <div class="action-item" @click="handleQuickAction('report')">
-            <div class="action-icon action-icon-warning">
+            <div class="action-icon action-icon-purple">
               <i class="el-icon-s-data"></i>
             </div>
             <div class="action-text">统计报表</div>
+          </div>
+          <div class="action-item" @click="handleQuickAction('settings')">
+            <div class="action-icon action-icon-gray">
+              <i class="el-icon-setting"></i>
+            </div>
+            <div class="action-text">系统设置</div>
+          </div>
+          <div class="action-item" @click="handleQuickAction('help')">
+            <div class="action-icon action-icon-cyan">
+              <i class="el-icon-help"></i>
+            </div>
+            <div class="action-text">帮助文档</div>
           </div>
         </div>
       </el-card>
@@ -124,9 +148,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import { ElMessage, ElLoading } from 'element-plus'
 import BaseCard from '@/components/BaseCard.vue'
+import { fetchTodoStatistics, fetchRecentActivities } from '@/api'
+
+const router = useRouter()
+const userStore = useUserStore()
 
 interface Activity {
   id: number
@@ -137,60 +167,113 @@ interface Activity {
   icon: string
 }
 
-const recentActivities = ref<Activity[]>([
-  {
-    id: 1,
-    title: '完成了"系统优化"任务',
-    time: '10分钟前',
-    status: '已完成',
-    statusType: 'success',
-    icon: 'el-icon-check'
-  },
-  {
-    id: 2,
-    title: '创建了"新功能开发"任务',
-    time: '1小时前',
-    status: '进行中',
-    statusType: 'primary',
-    icon: 'el-icon-plus'
-  },
-  {
-    id: 3,
-    title: '审批了"请假申请"',
-    time: '2小时前',
-    status: '已审批',
-    statusType: 'success',
-    icon: 'el-icon-s-check'
-  },
-  {
-    id: 4,
-    title: '更新了"项目进度"',
-    time: '3小时前',
-    status: '已更新',
-    statusType: 'info',
-    icon: 'el-icon-edit'
-  }
-])
+interface Statistics {
+  total: number
+  todayAdded: number
+  completionRate: number
+  pendingApproval: number
+  totalTrend: number
+  addedTrend: number
+  rateTrend: number
+  approvalTrend: number
+}
+
+const recentActivities = ref<Activity[]>([])
+const statistics = ref<Statistics>({
+  total: 0,
+  todayAdded: 0,
+  completionRate: 0,
+  pendingApproval: 0,
+  totalTrend: 0,
+  addedTrend: 0,
+  rateTrend: 0,
+  approvalTrend: 0
+})
+
+const username = computed(() => userStore.userInfo?.username || '用户')
+
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 6) return '夜深了'
+  if (hour < 12) return '早上好'
+  if (hour < 14) return '中午好'
+  if (hour < 18) return '下午好'
+  return '晚上好'
+})
+
+const todayDate = computed(() => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  const weekDay = weekDays[now.getDay()]
+  return `${year}年${month}月${day}日 ${weekDay}`
+})
 
 const handleQuickAction = (action: string) => {
   switch (action) {
     case 'add':
-      ElMessage.info('跳转到新建待办页面')
+      router.push('/todo/add')
       break
     case 'export':
       ElMessage.success('开始导出数据')
       break
     case 'search':
-      ElMessage.info('打开高级搜索')
+      router.push('/todo')
       break
     case 'report':
-      ElMessage.info('查看统计报表')
+      router.push('/statistics')
+      break
+    case 'approval':
+      ElMessage.info('跳转到审批页面')
+      break
+    case 'transfer':
+      ElMessage.info('跳转到任务转交页面')
+      break
+    case 'settings':
+      ElMessage.info('打开系统设置')
+      break
+    case 'help':
+      ElMessage.info('打开帮助文档')
       break
   }
 }
 
+const loadData = async () => {
+  const loading = ElLoading.service({ text: '加载中...' })
+  try {
+    const stats = await fetchTodoStatistics()
+    statistics.value = {
+      total: stats.total || 0,
+      todayAdded: stats.todayAdded || 0,
+      completionRate: stats.completionRate || 0,
+      pendingApproval: stats.pendingApproval || 0,
+      totalTrend: stats.totalTrend || 0,
+      addedTrend: stats.addedTrend || 0,
+      rateTrend: stats.rateTrend || 0,
+      approvalTrend: stats.approvalTrend || 0
+    }
+
+    const activities = await fetchRecentActivities()
+    recentActivities.value = activities.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      time: item.time,
+      status: item.status,
+      statusType: item.statusType,
+      icon: item.icon
+    }))
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.close()
+  }
+}
+
 onMounted(() => {
-  // 可以在这里加载真实的统计数据
+  loadData()
 })
 </script>
 
@@ -395,11 +478,27 @@ onMounted(() => {
 }
 
 .action-icon-info {
-  background: linear-gradient(135deg, #6b7280, #9ca3af);
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
 }
 
 .action-icon-warning {
   background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+
+.action-icon-danger {
+  background: linear-gradient(135deg, #ef4444, #f87171);
+}
+
+.action-icon-purple {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+}
+
+.action-icon-gray {
+  background: linear-gradient(135deg, #6b7280, #9ca3af);
+}
+
+.action-icon-cyan {
+  background: linear-gradient(135deg, #06b6d4, #22d3ee);
 }
 
 .action-text {

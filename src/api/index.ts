@@ -214,6 +214,9 @@ export const getRolePermissions = (roleId: number | string) =>
 export const fetchTodoStatistics = (params?: Record<string, any>) =>
   service.get('/api/todo/statistics', { params })
 
+export const fetchRecentActivities = (params?: Record<string, any>) =>
+  service.get('/api/activities/recent', { params })
+
 export const exportCsv = (data: string, filename = 'export.csv') => {
   const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
