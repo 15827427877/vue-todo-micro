@@ -13,6 +13,7 @@ import TodoStatistics from '@/views/TodoStatistics.vue'
 import ApprovalCenter from '@/views/ApprovalCenter.vue'
 import SystemSettings from '@/views/SystemSettings.vue'
 import HelpCenter from '@/views/HelpCenter.vue'
+import NotificationList from '@/views/NotificationList.vue'
 
 const routes = [
   {
@@ -90,6 +91,12 @@ const routes = [
         name: 'HelpCenter',
         component: HelpCenter,
         meta: { title: '帮助文档', requiresAuth: true }
+      },
+      {
+        path: 'notifications',
+        name: 'NotificationList',
+        component: NotificationList,
+        meta: { title: '通知中心', requiresAuth: true }
       }
     ]
   }

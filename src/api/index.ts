@@ -325,4 +325,24 @@ export const exportCsv = (data: string, filename = 'export.csv') => {
   URL.revokeObjectURL(url)
 }
 
+export interface NotificationQueryParams {
+  page?: number
+  size?: number
+}
+
+export const fetchNotificationList = (params?: NotificationQueryParams) =>
+  service.get('/api/notifications', { params })
+
+export const markNotificationAsRead = (id: number | string) =>
+  service.put(`/api/notifications/${id}`)
+
+export const markAllNotificationsAsRead = () =>
+  service.put('/api/notifications/read-all')
+
+export const deleteNotification = (id: number | string) =>
+  service.delete(`/api/notifications/${id}`)
+
+export const fetchNotificationCount = () =>
+  service.get('/api/notifications/count')
+
 export default service
